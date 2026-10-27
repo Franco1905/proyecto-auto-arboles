@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Árboles Binarios en Java</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2pdf.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* Estilos personalizados y de árbol SVG */
+    .tree-node circle {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .tree-node circle:hover {
+      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.7));
+    }
+    .tree-node.selected circle {
+      stroke: #3b82f6;
+      stroke-width: 3.5px;
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.9));
+    }
+    .tree-link {
+      fill: none;
+      stroke: #94a3b8;
+      stroke-width: 2px;
+      stroke-linecap: round;
+    }
+    .tree-link-left {
+      stroke: #60a5fa;
+    }
+    .tree-link-right {
+      stroke: #a78bfa;
+    }
+    /* Estilos para exportación a PDF */
+    @media print {
+      body { background: white; color: black; }
+      .no-print { display: none !important; }
+    }
+    pre {
+      font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700 sticky top-0 z-30 px-6 py-3 flex flex-wrap items-center justify-between gap-4 shadow-md">
+    <div class="flex items-center gap-3">
+      <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+        <i data-lucide="git-fork" class="w-6 h-6 rotate-180"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg text-white leading-tight">Generador de Árbol Binario (Java)</h1>
+        <p class="text-xs text-slate-400">Estructura <code class="text-indigo-400 font-mono">BinaryTree&lt;T&gt;</code> (AYED)</p>
+      </div>
+    </div>
+
+    <!-- Barra de acciones globales -->
+    <div class="flex items-center flex-wrap gap-2">
+      <!-- Undo / Redo -->
+      <button id="btnUndo" title="Deshacer (Ctrl+Z)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium transition">
+        <i data-lucide="undo-2" class="w-4 h-4"></i> Deshacer
+      </button>
+      <button id="btnRedo" title="Rehacer (Ctrl+Y)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium transition">
+        <i data-lucide="redo-2" class="w-4 h-4"></i> Rehacer
+      </button>
+
+      <div class="h-5 w-px bg-slate-700 mx-1"></div>
+
+      <!-- Nuevo Árbol -->
+      <button id="btnOpenNewTreeModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i> Crear Árbol
+      </button>
+
+      <!-- Exportar PDF -->
+      <button id="btnExportPDF" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 transition">
+        <i data-lucide="file-down" class="w-4 h-4"></i> Exportar PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="flex-1 p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1900px] w-full mx-auto">
+
+    <!-- COLUMNA IZQUIERDA: Selector y Controles Desplegables de Edición (4 Cols) -->
+    <div class="lg:col-span-4 flex flex-col gap-5">
+      
+      <!-- Panel de Selección de Árbol -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2">
+            <i data-lucide="folder-tree" class="w-4 h-4 text-indigo-400"></i> Árbol Activo
+          </label>
+          <span id="treeBadgeCount" class="text-xs bg-slate-700 px-2 py-0.5 rounded-full text-slate-300">0 árboles</span>
+        </div>
+        <div class="flex gap-2">
+          <select id="activeTreeSelect" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <!-- Opciones dinámicas -->
+          </select>
+          <button id="btnDeleteTree" title="Eliminar árbol actual" class="p-2 text-rose-400 hover:text-white hover:bg-rose-600 rounded-lg border border-rose-500/30 transition flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ACORDEÓN DESPLEGABLE: Interfaz de Edición Manual / Estructura Binaria -->
+      <details open class="group bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-sm bg-slate-800/90 hover:bg-slate-750 select-none">
+          <div class="flex items-center gap-2 text-slate-200">
+            <i data-lucide="edit-3" class="w-4 h-4 text-indigo-400"></i>
+            <span>Edición de Nodos Binarios</span>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+        </summary>
+        <div class="p-4 border-t border-slate-700/60 bg-slate-850/50 flex flex-col gap-4 text-xs">
+          
+          <!-- Información del Nodo Seleccionado -->
+          <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-750 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Nodo Seleccionado:</span>
+              <span id="selectedNodeLabel" class="font-mono font-bold text-indigo-400 bg-indigo-950/70 border border-indigo-800/50 px-2 py-0.5 rounded text-xs">Ninguno</span>
+            </div>
+            
+            <!-- Indicadores hasLeftChild y hasRightChild -->
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400">hasLeftChild():</span>
+                <span id="badgeHasLeft" class="px-1.5 py-0.2 rounded font-mono text-[10px] bg-slate-800 text-slate-400">false</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400">hasRightChild():</span>
+                <span id="badgeHasRight" class="px-1.5 py-0.2 rounded font-mono text-[10px] bg-slate-800 text-slate-400">false</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modificar Valor (setData) -->
+          <div class="space-y-1.5">
+            <label class="text-slate-300 font-medium">Modificar valor (<code class="font-mono text-indigo-300">setData</code>):</label>
+            <div class="flex gap-2">
+              <input id="inputNodeValue" type="text" placeholder="Nuevo valor" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+              <button id="btnUpdateValue" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-slate-200 font-medium transition">
+                Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Gestión Hijo Izquierdo (addLeftChild / removeLeftChild) -->
+          <div class="space-y-2 p-2.5 rounded-lg bg-slate-900/40 border border-blue-900/30">
+            <div class="flex items-center justify-between">
+              <span class="text-blue-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Rama Izquierda
+              </span>
+              <button id="btnRemoveLeftChild" title="removeLeftChild()" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 px-2 py-0.5 rounded text-[10px] border border-rose-900/40 transition flex items-center gap-1">
+                <i data-lucide="trash" class="w-3 h-3"></i> Quitar
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <input id="inputLeftChildValue" type="text" placeholder="Valor hijo izquierdo" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+              <button id="btnAddLeftChild" title="addLeftChild(child)" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Asignar
+              </button>
+            </div>
+          </div>
+
+          <!-- Gestión Hijo Derecho (addRightChild / removeRightChild) -->
+          <div class="space-y-2 p-2.5 rounded-lg bg-slate-900/40 border border-purple-900/30">
+            <div class="flex items-center justify-between">
+              <span class="text-purple-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="corner-down-right" class="w-3.5 h-3.5"></i> Rama Derecha
+              </span>
+              <button id="btnRemoveRightChild" title="removeRightChild()" class="text-rose-400 hover:text-rose-300 hover:bg-rose-950/60 px-2 py-0.5 rounded text-[10px] border border-rose-900/40 transition flex items-center gap-1">
+                <i data-lucide="trash" class="w-3 h-3"></i> Quitar
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <input id="inputRightChildValue" type="text" placeholder="Valor hijo derecho" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+              <button id="btnAddRightChild" title="addRightChild(child)" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Asignar
+              </button>
+            </div>
+          </div>
+
+          <!-- Eliminar Nodo o Subárbol Completo -->
+          <div class="pt-2 border-t border-slate-750 flex justify-between items-center">
+            <span class="text-slate-400">Eliminar subárbol:</span>
+            <button id="btnDeleteNode" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-800/50 text-rose-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+              <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Eliminar Nodo
+            </button>
+          </div>
+        </div>
+      </details>
+
+      <!-- ACORDEÓN DESPLEGABLE: Sección de Notas del Usuario -->
+      <details open class="group bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-sm bg-slate-800/90 hover:bg-slate-750 select-none">
+          <div class="flex items-center gap-2 text-slate-200">
+            <i data-lucide="sticky-note" class="w-4 h-4 text-amber-400"></i>
+            <span>Notas & Observaciones</span>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+        </summary>
+        <div class="p-4 border-t border-slate-700/60 bg-slate-850/50 flex flex-col gap-2">
+          <p class="text-[11px] text-slate-400">Escribe apuntes, recorridos (preorden, inorden, postorden) o consideraciones que se incluirán en el informe:</p>
+          <textarea id="notesArea" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y" placeholder="Ej: Árbol binario de búsqueda o árbol de expresión aritmética. Recorrido inorden: ..."></textarea>
+          <div class="flex justify-end text-[11px] text-slate-500">
+            <span>Guardado automáticamente</span>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: Visualización en Vivo y Código Java (8 Cols) -->
+    <div class="lg:col-span-8 flex flex-col gap-5">
+      
+      <!-- ACORDEÓN DESPLEGABLE: Representación Visual en Vivo con Zoom -->
+      <details open class="group bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-sm bg-slate-800/90 hover:bg-slate-750 select-none">
+          <div class="flex items-center gap-2 text-slate-200">
+            <i data-lucide="eye" class="w-4 h-4 text-emerald-400"></i>
+            <span>Visualización en Vivo del Árbol Binario</span>
+            <span id="visualTreeTypeTag" class="text-[10px] px-2 py-0.5 rounded bg-slate-700 text-indigo-300 font-mono ml-2">BinaryTree&lt;Integer&gt;</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+          </div>
+        </summary>
+        <div class="border-t border-slate-700/60 flex flex-col">
+          <!-- Barra de controles de Zoom y Pan -->
+          <div class="p-2.5 bg-slate-850 border-b border-slate-750 flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-400 text-[11px]">Controles Zoom:</span>
+              <button id="btnZoomIn" title="Acercar" class="p-1.5 bg-slate-750 hover:bg-slate-700 rounded text-slate-200">
+                <i data-lucide="zoom-in" class="w-4 h-4"></i>
+              </button>
+              <button id="btnZoomOut" title="Alejar" class="p-1.5 bg-slate-750 hover:bg-slate-700 rounded text-slate-200">
+                <i data-lucide="zoom-out" class="w-4 h-4"></i>
+              </button>
+              <button id="btnResetZoom" title="Restablecer vista" class="p-1.5 bg-slate-750 hover:bg-slate-700 rounded text-slate-200">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+              </button>
+              <span id="zoomLevelIndicator" class="font-mono text-slate-400 text-[11px] ml-1">100%</span>
+            </div>
+            <div class="flex items-center gap-3 text-slate-400 text-[11px]">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Rama Izq</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span> Rama Der</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Hoja</span>
+              <span class="italic text-slate-500">Arrastra para mover lienzo</span>
+            </div>
+          </div>
+
+          <!-- Lienzo Interactivo SVG -->
+          <div id="treeCanvasContainer" class="relative w-full h-[380px] bg-slate-950 overflow-hidden cursor-grab active:cursor-grabbing select-none">
+            <svg id="treeSvg" class="w-full h-full">
+              <g id="treeViewport">
+                <!-- Se dibuja dinámicamente -->
+              </g>
+            </svg>
+            <div id="emptyTreeMsg" class="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+              <i data-lucide="inbox" class="w-10 h-10 mb-2 opacity-50"></i>
+              <p class="text-sm">El árbol está vacío o no hay ningún árbol seleccionado.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- ACORDEÓN DESPLEGABLE: Código Java Generado -->
+      <details open class="group bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+        <summary class="flex items-center justify-between p-4 cursor-pointer font-semibold text-sm bg-slate-800/90 hover:bg-slate-750 select-none">
+          <div class="flex items-center gap-2 text-slate-200">
+            <i data-lucide="code" class="w-4 h-4 text-indigo-400"></i>
+            <span>Código Java Generado (Método Estático con <code class="font-mono text-xs text-indigo-300">BinaryTree&lt;T&gt;</code>)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnCopyCode" title="Copiar código Java" class="px-2.5 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded text-slate-200 flex items-center gap-1 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+            </button>
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+          </div>
+        </summary>
+        <div class="border-t border-slate-700/60 bg-slate-950 p-4 overflow-x-auto">
+          <pre id="javaCodeBlock" class="text-xs text-indigo-300 leading-relaxed font-mono whitespace-pre"></pre>
+        </div>
+      </details>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL: CREAR NUEVO ÁRBOL BINARIO (MANUAL O ALEATORIO) -->
+  <div id="newTreeModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+      <div class="p-5 border-b border-slate-700 flex justify-between items-center bg-slate-850">
+        <div class="flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i>
+          <h2 class="text-base font-bold text-white">Configurar Nuevo Árbol Binario</h2>
+        </div>
+        <button id="btnCloseModal" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        
+        <!-- Nombre del Árbol -->
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Nombre o identificador del árbol:</label>
+          <input id="modalTreeName" type="text" placeholder="Ej: ArbolBinario1, miArbol" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Modo de Creación (Manual / Aleatorio) -->
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">Modo de Creación:</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-700 bg-slate-900/60 cursor-pointer hover:border-indigo-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/30">
+              <input type="radio" name="createMode" value="manual" checked class="text-indigo-500">
+              <div>
+                <span class="font-semibold block text-slate-200">Manual</span>
+                <span class="text-[10px] text-slate-400">Crea una raíz inicial con valor</span>
+              </div>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-700 bg-slate-900/60 cursor-pointer hover:border-indigo-500 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-950/30">
+              <input type="radio" name="createMode" value="random" class="text-indigo-500">
+              <div>
+                <span class="font-semibold block text-slate-200">Aleatorio</span>
+                <span class="text-[10px] text-slate-400">Genera estructura binaria auto</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tipo de Dato -->
+        <div id="dataTypeContainer">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-slate-300 font-medium">Tipo de dato de los nodos:</label>
+            <label id="randomTypeToggleWrap" class="hidden items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+              <input type="checkbox" id="chkRandomDataType" class="rounded border-slate-700 text-indigo-500">
+              <span>Elegir tipo aleatoriamente</span>
+            </label>
+          </div>
+          <select id="modalDataType" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="Integer">Integer (Números enteros)</option>
+            <option value="String">String (Cadenas de texto)</option>
+            <option value="Character">Character (Caracteres / Letras)</option>
+            <option value="Double">Double (Números decimales)</option>
+          </select>
+        </div>
+
+        <!-- OPCIONES ESPECÍFICAS DE MODO MANUAL -->
+        <div id="manualOptionsSection" class="p-3 bg-slate-900/40 rounded-xl border border-slate-750 space-y-2">
+          <label class="block text-slate-300 font-medium">Valor inicial para la raíz:</label>
+          <input id="modalRootValue" type="text" placeholder="Ej: 10, Raiz, A" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- OPCIONES ESPECÍFICAS DE MODO ALEATORIO -->
+        <div id="randomOptionsSection" class="hidden p-3 bg-slate-900/40 rounded-xl border border-slate-750 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">Parámetros del generador aleatorio</span>
+            <span class="text-[10px] text-amber-400 font-medium">Límites de seguridad activos</span>
+          </div>
+          
+          <!-- Cantidad Máxima de Nodos -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="text-slate-300">Cantidad máx. de nodos (Límite: 35):</label>
+              <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                <input type="checkbox" id="chkRandomNodeCount" class="rounded text-indigo-500">
+                <span>Aleatorio (5 a 15)</span>
+              </label>
+            </div>
+            <input id="modalMaxNodes" type="number" min="1" max="35" value="12" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+            <p class="text-[10px] text-slate-400">Restringido a un máximo de 35 nodos para mantener legibilidad y rendimiento.</p>
+          </div>
+
+          <!-- Altura / Profundidad Máxima -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="text-slate-300">Altura / Profundidad máx. (Límite: 5):</label>
+              <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer">
+                <input type="checkbox" id="chkRandomDepth" class="rounded text-indigo-500">
+                <span>Aleatorio (2 a 4)</span>
+              </label>
+            </div>
+            <input id="modalMaxDepth" type="number" min="1" max="5" value="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500">
+            <p class="text-[10px] text-slate-400">Restringido entre 1 y 5 niveles de profundidad binaria.</p>
+          </div>
+
+          <p class="text-[10px] text-slate-400 italic">* Cada nodo podrá tener 0, 1 (izquierdo o derecho) o 2 hijos, generados aleatoriamente.</p>
+        </div>
+
+      </div>
+
+      <div class="p-4 border-t border-slate-700 bg-slate-850 flex justify-end gap-2.5">
+        <button id="btnCancelModal" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold transition">
+          Cancelar
+        </button>
+        <button id="btnConfirmCreateTree" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">
+          Crear Árbol
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR MODAL DE PREPARACIÓN / EXPORTACIÓN A PDF -->
+  <div id="pdfExportWrapper" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl max-h-[95vh] w-full flex flex-col shadow-2xl overflow-hidden">
+      <!-- Barra superior de la ventana de exportación -->
+      <div class="px-5 py-3.5 border-b border-slate-700 bg-slate-850 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-check" class="w-5 h-5 text-emerald-400"></i>
+          <span class="font-bold text-sm text-white">Generación de Informe PDF</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnDownloadPDFDirect" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Guardar PDF
+          </button>
+          <button id="btnClosePDFModal" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Área con scroll donde se renderiza la hoja PDF exactamente -->
+      <div class="flex-1 overflow-auto p-4 flex justify-center bg-slate-950/70">
+        <div id="pdfExportContainer" class="bg-white text-slate-900 p-6 box-border font-sans shadow-xl" style="width: 794px; min-height: 1120px; display: flex; flex-direction: column; justify-content: space-between;">
+          <!-- Encabezado -->
+          <div class="border-b-2 border-indigo-600 pb-2 mb-3 flex justify-between items-center">
+            <div>
+              <h1 class="text-xl font-bold text-slate-900" id="pdfTitle">Reporte de Árbol Binario</h1>
+              <p class="text-xs text-slate-600" id="pdfSubtitle">Estructura BinaryTree&lt;T&gt; - Algoritmos y Estructuras de Datos</p>
+            </div>
+            <div class="text-right text-[11px] text-slate-500">
+              <p id="pdfDate"></p>
+              <span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 font-semibold">Hoja Única</span>
+            </div>
+          </div>
+
+          <!-- 1. Notas & Observaciones -->
+          <div class="mb-3">
+            <h2 class="text-xs font-bold text-slate-800 border-b pb-0.5 mb-1.5 uppercase tracking-wide">1. Notas & Observaciones</h2>
+            <p id="pdfNotesContent" class="text-[11px] text-slate-700 bg-slate-50 p-2.5 rounded border leading-relaxed whitespace-pre-wrap font-sans">Sin notas registradas.</p>
+          </div>
+
+          <!-- 2. Representación Visual del Árbol Binario -->
+          <div class="mb-3 flex-shrink-0">
+            <h2 class="text-xs font-bold text-slate-800 border-b pb-0.5 mb-1.5 uppercase tracking-wide">2. Representación Visual del Árbol Binario</h2>
+            <div id="pdfVisualContainer" class="border rounded p-2 flex justify-center items-center bg-white overflow-hidden transition-all duration-200" style="min-height: 180px;">
+              <!-- SVG del árbol -->
+            </div>
+          </div>
+
+          <!-- 3. Código Java Generado -->
+          <div class="flex-1 flex flex-col min-h-0">
+            <h2 class="text-xs font-bold text-slate-800 border-b pb-0.5 mb-1.5 uppercase tracking-wide">3. Código Java Generado (Método Estático)</h2>
+            <div class="flex-1 bg-slate-900 rounded p-3 overflow-hidden border border-slate-800 flex flex-col">
+              <pre id="pdfJavaCode" class="text-[9.5px] leading-snug text-slate-100 font-mono whitespace-pre overflow-y-auto flex-1 select-text"></pre>
+            </div>
+          </div>
+
+          <!-- Pie de página -->
+          <div class="pt-2 mt-2 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400">
+            <span>Generado con herramienta de Árboles Binarios (BinaryTree&lt;T&gt;)</span>
+            <span>Página 1 de 1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT PRINCIPAL DE LA APLICACIÓN -->
+  <script>
+    // Inicializar iconos de Lucide
+    lucide.createIcons();
+
+    /* ========================================================
+       ESTADO DE LA APLICACIÓN Y HISTORIAL (UNDO / REDO)
+       ======================================================== */
+    let appState = {
+      trees: [],          // Colección de árboles { id, name, dataType, rootNode }
+      activeTreeId: null,
+      notes: "",
+      selectedNodeId: null
+    };
+
+    let undoStack = [];
+    let redoStack = [];
+    const MAX_HISTORY = 30;
+
+    function saveState() {
+      // Guardar una instantánea profunda
+      const snapshot = JSON.stringify({
+        trees: appState.trees,
+        activeTreeId: appState.activeTreeId,
+        notes: appState.notes,
+        selectedNodeId: appState.selectedNodeId
+      });
+      undoStack.push(snapshot);
+      if (undoStack.length > MAX_HISTORY) undoStack.shift();
+      redoStack = []; // limpiar redo al hacer una nueva mutación
+      updateUndoRedoButtons();
+    }
+
+    function undo() {
+      if (undoStack.length === 0) return;
+      const current = JSON.stringify({
+        trees: appState.trees,
+        activeTreeId: appState.activeTreeId,
+        notes: appState.notes,
+        selectedNodeId: appState.selectedNodeId
+      });
+      redoStack.push(current);
+      const prev = JSON.parse(undoStack.pop());
+      appState = prev;
+      refreshUI();
+      updateUndoRedoButtons();
+    }
+
+    function redo() {
+      if (redoStack.length === 0) return;
+      const current = JSON.stringify({
+        trees: appState.trees,
+        activeTreeId: appState.activeTreeId,
+        notes: appState.notes,
+        selectedNodeId: appState.selectedNodeId
+      });
+      undoStack.push(current);
+      const next = JSON.parse(redoStack.pop());
+      appState = next;
+      refreshUI();
+      updateUndoRedoButtons();
+    }
+
+    function updateUndoRedoButtons() {
+      document.getElementById('btnUndo').disabled = (undoStack.length === 0);
+      document.getElementById('btnRedo').disabled = (redoStack.length === 0);
+    }
+
+    /* ========================================================
+       MANEJO DE NODOS Y ÁRBOLES BINARIOS
+       ======================================================== */
+    let nodeCounter = 1;
+    function createBinaryNode(data) {
+      return {
+        id: 'node_' + (nodeCounter++),
+        data: data,
+        leftChild: null,
+        rightChild: null
+      };
+    }
+
+    function getActiveTree() {
+      return appState.trees.find(t => t.id === appState.activeTreeId) || null;
+    }
+
+    function findNodeById(node, id) {
+      if (!node) return null;
+      if (node.id === id) return node;
+      const left = findNodeById(node.leftChild, id);
+      if (left) return left;
+      return findNodeById(node.rightChild, id);
+    }
+
+    function findParentNode(parent, childId) {
+      if (!parent) return null;
+      if (parent.leftChild && parent.leftChild.id === childId) {
+        return { parent: parent, branch: 'left' };
+      }
+      if (parent.rightChild && parent.rightChild.id === childId) {
+        return { parent: parent, branch: 'right' };
+      }
+      const leftSearch = findParentNode(parent.leftChild, childId);
+      if (leftSearch) return leftSearch;
+      return findParentNode(parent.rightChild, childId);
+    }
+
+    /* ========================================================
+       GENERACIÓN ALEATORIA DE ÁRBOLES BINARIOS
+       ======================================================== */
+    function getRandomValue(dataType) {
+      switch (dataType) {
+        case 'Integer':
+          return Math.floor(Math.random() * 90) + 10; // 10 a 99
+        case 'String':
+          const words = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta", "Iota", "Kappa", "Bin", "Dato", "Item"];
+          return words[Math.floor(Math.random() * words.length)] + Math.floor(Math.random() * 10);
+        case 'Character':
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+          return chars.charAt(Math.floor(Math.random() * chars.length));
+        case 'Double':
+          return parseFloat((Math.random() * 50 + 1).toFixed(2));
+        default:
+          return Math.floor(Math.random() * 50);
+      }
+    }
+
+    function generateRandomBinaryTreeWithLimits(dataType, maxNodes, maxDepth) {
+      let count = 0;
+
+      function buildSubtree(currentDepth) {
+        if (count >= maxNodes || currentDepth > maxDepth) return null;
+        count++;
+        const node = createBinaryNode(getRandomValue(dataType));
+
+        if (currentDepth < maxDepth && count < maxNodes) {
+          // Probabilidad de tener hijo izquierdo y/o derecho
+          const hasLeft = Math.random() > 0.3;
+          const hasRight = Math.random() > 0.3 || !hasLeft; // al menos 1 rama con alta probabilidad
+
+          if (hasLeft && count < maxNodes) {
+            node.leftChild = buildSubtree(currentDepth + 1);
+          }
+          if (hasRight && count < maxNodes) {
+            node.rightChild = buildSubtree(currentDepth + 1);
+          }
+        }
+        return node;
+      }
+
+      const root = buildSubtree(1);
+      return root || createBinaryNode(getRandomValue(dataType));
+    }
+
+    /* ========================================================
+       GENERADOR DE CÓDIGO JAVA (MÉTODO ESTÁTICO BinaryTree<T>)
+       ======================================================== */
+    function generateJavaCode(tree) {
+      if (!tree || !tree.rootNode) {
+        return `// No hay un árbol binario seleccionado o está vacío.\n// Crea un árbol para visualizar el método estático en Java.`;
+      }
+
+      const type = tree.dataType;
+      const methodName = "crear" + tree.name.replace(/[^a-zA-Z0-9_]/g, '');
+
+      let codeLines = [];
+      let varIndex = 1;
+
+      function formatValue(val) {
+        if (type === 'String') return `"${val}"`;
+        if (type === 'Character') return `'${val}'`;
+        if (type === 'Double') return `${val}d`;
+        return `${val}`;
+      }
+
+      function traverse(node, isRoot = false) {
+        const currentVar = isRoot ? "arbol" : `n${varIndex++}`;
+        const valFormatted = formatValue(node.data);
+        
+        codeLines.push(`        BinaryTree<${type}> ${currentVar} = new BinaryTree<${type}>(${valFormatted});`);
+        
+        if (node.leftChild) {
+          const leftVar = traverse(node.leftChild, false);
+          codeLines.push(`        ${currentVar}.addLeftChild(${leftVar});`);
+        }
+        
+        if (node.rightChild) {
+          const rightVar = traverse(node.rightChild, false);
+          codeLines.push(`        ${currentVar}.addRightChild(${rightVar});`);
+        }
+
+        return currentVar;
+      }
+
+      codeLines.push(`package tp2.ejercicio1;\n`);
+      codeLines.push(`public class CreadorDeArbolesBinarios {\n`);
+      codeLines.push(`    /**`);
+      codeLines.push(`     * Construye y retorna el árbol binario '${tree.name}'.`);
+      codeLines.push(`     * Utiliza la implementación BinaryTree<T> con addLeftChild y addRightChild.`);
+      codeLines.push(`     */`);
+      codeLines.push(`    public static BinaryTree<${type}> ${methodName}() {`);
+
+      traverse(tree.rootNode, true);
+
+      codeLines.push(`        return arbol;`);
+      codeLines.push(`    }`);
+      codeLines.push(`}`);
+
+      return codeLines.join('\n');
+    }
+
+    /* ========================================================
+       RENDERIZADO VISUAL DEL ÁRBOL BINARIO EN SVG + ZOOM & PAN
+       ======================================================== */
+    let zoomState = {
+      scale: 1,
+      translateX: 60,
+      translateY: 40,
+      isDragging: false,
+      startX: 0,
+      startY: 0
+    };
+
+    /**
+     * Calcula la disposición del árbol binario.
+     * Garantiza que el hijo izquierdo quede a la izquierda y el derecho a la derecha.
+     */
+    function calculateBinaryLayout(root) {
+      if (!root) return { nodes: [], links: [] };
+
+      const levelHeight = 75;
+      let leafIndex = 0;
+      const siblingSpacing = 55;
+
+      // In-order traversal modificado para fijar posiciones X relativas naturales
+      function assignCoordinates(node, depth) {
+        if (!node) return;
+        node.depth = depth;
+        node.y = depth * levelHeight + 35;
+
+        // Si tiene hijo izquierdo, visitarlo
+        if (node.leftChild) {
+          assignCoordinates(node.leftChild, depth + 1);
+        } else if (node.rightChild) {
+          // Espaciador si sólo tiene derecho para mantener el desvío simétrico
+          leafIndex += 0.5;
+        }
+
+        // Asignar x del nodo actual
+        if (!node.leftChild && !node.rightChild) {
+          node.x = leafIndex * siblingSpacing + 40;
+          leafIndex += 1;
+        } else if (node.leftChild && !node.rightChild) {
+          node.x = node.leftChild.x + 35;
+          leafIndex += 0.5;
+        } else if (!node.leftChild && node.rightChild) {
+          assignCoordinates(node.rightChild, depth + 1);
+          node.x = node.rightChild.x - 35;
+        } else {
+          // Ambos hijos existen
+          assignCoordinates(node.rightChild, depth + 1);
+          node.x = (node.leftChild.x + node.rightChild.x) / 2;
+        }
+      }
+
+      assignCoordinates(root, 0);
+
+      // Recolectar nodos y enlaces
+      const nodes = [];
+      const links = [];
+
+      function collect(node) {
+        if (!node) return;
+        nodes.push(node);
+        if (node.leftChild) {
+          links.push({ source: node, target: node.leftChild, type: 'left' });
+          collect(node.leftChild);
+        }
+        if (node.rightChild) {
+          links.push({ source: node, target: node.rightChild, type: 'right' });
+          collect(node.rightChild);
+        }
+      }
+      collect(root);
+
+      return { nodes, links };
+    }
+
+    function renderTreeVisual() {
+      const tree = getActiveTree();
+      const viewport = document.getElementById('treeViewport');
+      const emptyMsg = document.getElementById('emptyTreeMsg');
+      const typeTag = document.getElementById('visualTreeTypeTag');
+      viewport.innerHTML = '';
+
+      if (!tree || !tree.rootNode) {
+        emptyMsg.classList.remove('hidden');
+        typeTag.textContent = 'Sin árbol';
+        return;
+      }
+
+      emptyMsg.classList.add('hidden');
+      typeTag.textContent = `BinaryTree<${tree.dataType}> - "${tree.name}"`;
+
+      const layout = calculateBinaryLayout(tree.rootNode);
+
+      // Dibujar enlaces (líneas Bézier diferenciadas por rama)
+      for (const link of layout.links) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const midY = (link.source.y + link.target.y) / 2;
+        const d = `M ${link.source.x} ${link.source.y} C ${link.source.x} ${midY}, ${link.target.x} ${midY}, ${link.target.x} ${link.target.y}`;
+        line.setAttribute('d', d);
+        line.setAttribute('class', `tree-link ${link.type === 'left' ? 'tree-link-left' : 'tree-link-right'}`);
+        viewport.appendChild(line);
+
+        // Pequeña etiqueta de rama (I / D)
+        const branchTag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const tagX = (link.source.x + link.target.x) / 2 + (link.type === 'left' ? -8 : 8);
+        const tagY = midY;
+        branchTag.setAttribute('x', tagX);
+        branchTag.setAttribute('y', tagY);
+        branchTag.setAttribute('text-anchor', 'middle');
+        branchTag.setAttribute('dominant-baseline', 'central');
+        branchTag.setAttribute('fill', link.type === 'left' ? '#93c5fd' : '#c4b5fd');
+        branchTag.setAttribute('font-size', '9');
+        branchTag.setAttribute('font-family', 'monospace');
+        branchTag.setAttribute('font-weight', 'bold');
+        branchTag.setAttribute('pointer-events', 'none');
+        branchTag.textContent = link.type === 'left' ? 'I' : 'D';
+        viewport.appendChild(branchTag);
+      }
+
+      // Dibujar nodos
+      for (const node of layout.nodes) {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const isSelected = (node.id === appState.selectedNodeId);
+        const isLeaf = (!node.leftChild && !node.rightChild);
+
+        g.setAttribute('class', `tree-node ${isSelected ? 'selected' : ''}`);
+        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+        g.dataset.nodeId = node.id;
+
+        // Círculo del nodo
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', '18');
+        circle.setAttribute('fill', isLeaf ? '#10b981' : '#4f46e5');
+        circle.setAttribute('stroke', isSelected ? '#ffffff' : (isLeaf ? '#059669' : '#3730a3'));
+        circle.setAttribute('stroke-width', isSelected ? '3' : '2');
+
+        // Texto del dato
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('fill', '#ffffff');
+        text.setAttribute('font-size', '11');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('pointer-events', 'none');
+        
+        let displayStr = String(node.data);
+        if (displayStr.length > 5) displayStr = displayStr.substring(0, 4) + '…';
+        text.textContent = displayStr;
+
+        g.appendChild(circle);
+        g.appendChild(text);
+
+        // Evento de selección
+        g.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectNode(node.id);
+        });
+
+        viewport.appendChild(g);
+      }
+
+      applyZoomTransform();
+    }
+
+    function applyZoomTransform() {
+      const viewport = document.getElementById('treeViewport');
+      viewport.setAttribute('transform', `translate(${zoomState.translateX}, ${zoomState.translateY}) scale(${zoomState.scale})`);
+      document.getElementById('zoomLevelIndicator').textContent = `${Math.round(zoomState.scale * 100)}%`;
+    }
+
+    function selectNode(nodeId) {
+      appState.selectedNodeId = nodeId;
+      const tree = getActiveTree();
+      const node = tree ? findNodeById(tree.rootNode, nodeId) : null;
+      
+      const label = document.getElementById('selectedNodeLabel');
+      const inputVal = document.getElementById('inputNodeValue');
+      const badgeLeft = document.getElementById('badgeHasLeft');
+      const badgeRight = document.getElementById('badgeHasRight');
+
+      if (node) {
+        label.textContent = `${node.data} (ID: ${node.id})`;
+        inputVal.value = node.data;
+
+        const hasL = !!node.leftChild;
+        const hasR = !!node.rightChild;
+
+        badgeLeft.textContent = hasL ? 'true' : 'false';
+        badgeLeft.className = `px-1.5 py-0.2 rounded font-mono text-[10px] ${hasL ? 'bg-blue-950 text-blue-300 border border-blue-800' : 'bg-slate-800 text-slate-400'}`;
+
+        badgeRight.textContent = hasR ? 'true' : 'false';
+        badgeRight.className = `px-1.5 py-0.2 rounded font-mono text-[10px] ${hasR ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-slate-800 text-slate-400'}`;
+      } else {
+        label.textContent = "Ninguno";
+        inputVal.value = "";
+        badgeLeft.textContent = "false";
+        badgeLeft.className = "px-1.5 py-0.2 rounded font-mono text-[10px] bg-slate-800 text-slate-400";
+        badgeRight.textContent = "false";
+        badgeRight.className = "px-1.5 py-0.2 rounded font-mono text-[10px] bg-slate-800 text-slate-400";
+      }
+
+      renderTreeVisual();
+    }
+
+    /* ========================================================
+       ACTUALIZACIÓN COMPLETA DE INTERFAZ
+       ======================================================== */
+    function refreshUI() {
+      // 1. Selector de árboles
+      const select = document.getElementById('activeTreeSelect');
+      select.innerHTML = '';
+      appState.trees.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${t.dataType})`;
+        if (t.id === appState.activeTreeId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      document.getElementById('treeBadgeCount').textContent = `${appState.trees.length} árbol(es)`;
+
+      // 2. Renderizado del árbol activo
+      const tree = getActiveTree();
+      if (tree) {
+        if (!appState.selectedNodeId || !findNodeById(tree.rootNode, appState.selectedNodeId)) {
+          appState.selectedNodeId = tree.rootNode ? tree.rootNode.id : null;
+        }
+      } else {
+        appState.selectedNodeId = null;
+      }
+
+      selectNode(appState.selectedNodeId);
+
+      // 3. Código Java
+      const javaBlock = document.getElementById('javaCodeBlock');
+      javaBlock.textContent = generateJavaCode(tree);
+
+      // 4. Notas
+      document.getElementById('notesArea').value = appState.notes;
+
+      // Re-renderizar iconos por si acaso
+      lucide.createIcons();
+    }
+
+    /* ========================================================
+       EVENTOS Y ACCIONES DE USUARIO
+       ======================================================== */
+
+    // Zoom & Pan en Canvas SVG
+    const canvasContainer = document.getElementById('treeCanvasContainer');
+    
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      zoomState.scale = Math.min(2.5, zoomState.scale + 0.15);
+      applyZoomTransform();
+    });
+
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      zoomState.scale = Math.max(0.4, zoomState.scale - 0.15);
+      applyZoomTransform();
+    });
+
+    document.getElementById('btnResetZoom').addEventListener('click', () => {
+      zoomState.scale = 1;
+      zoomState.translateX = 60;
+      zoomState.translateY = 40;
+      applyZoomTransform();
+    });
+
+    canvasContainer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      zoomState.scale = Math.min(2.5, Math.max(0.4, zoomState.scale + delta));
+      applyZoomTransform();
+    });
+
+    canvasContainer.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.tree-node')) return;
+      zoomState.isDragging = true;
+      zoomState.startX = e.clientX - zoomState.translateX;
+      zoomState.startY = e.clientY - zoomState.translateY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!zoomState.isDragging) return;
+      zoomState.translateX = e.clientX - zoomState.startX;
+      zoomState.translateY = e.clientY - zoomState.startY;
+      applyZoomTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      zoomState.isDragging = false;
+    });
+
+    // Deshacer / Rehacer
+    document.getElementById('btnUndo').addEventListener('click', undo);
+    document.getElementById('btnRedo').addEventListener('click', redo);
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    });
+
+    // Cambio de árbol activo
+    document.getElementById('activeTreeSelect').addEventListener('change', (e) => {
+      appState.activeTreeId = e.target.value;
+      refreshUI();
+    });
+
+    // Eliminar árbol activo
+    document.getElementById('btnDeleteTree').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree) return;
+      if (confirm(`¿Estás seguro de que deseas eliminar el árbol '${tree.name}'?`)) {
+        saveState();
+        appState.trees = appState.trees.filter(t => t.id !== tree.id);
+        appState.activeTreeId = appState.trees.length > 0 ? appState.trees[0].id : null;
+        refreshUI();
+      }
+    });
+
+    // Actualizar valor de nodo (setData)
+    document.getElementById('btnUpdateValue').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree || !appState.selectedNodeId) return;
+      const node = findNodeById(tree.rootNode, appState.selectedNodeId);
+      if (!node) return;
+
+      const val = document.getElementById('inputNodeValue').value.trim();
+      if (val === '') return;
+
+      saveState();
+      node.data = (tree.dataType === 'Integer' || tree.dataType === 'Double') ? Number(val) : val;
+      refreshUI();
+    });
+
+    // Asignar / Agregar Hijo Izquierdo (addLeftChild)
+    document.getElementById('btnAddLeftChild').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree) {
+        alert("Primero crea un árbol.");
+        return;
+      }
+      if (!appState.selectedNodeId) {
+        alert("Selecciona un nodo padre.");
+        return;
+      }
+      const parent = findNodeById(tree.rootNode, appState.selectedNodeId);
+      if (!parent) return;
+
+      const input = document.getElementById('inputLeftChildValue');
+      let val = input.value.trim();
+      if (!val) {
+        val = getRandomValue(tree.dataType);
+      } else if (tree.dataType === 'Integer' || tree.dataType === 'Double') {
+        val = Number(val);
+      }
+
+      saveState();
+      const newChild = createBinaryNode(val);
+      parent.leftChild = newChild;
+      input.value = '';
+      appState.selectedNodeId = newChild.id;
+      refreshUI();
+    });
+
+    // Quitar Hijo Izquierdo (removeLeftChild)
+    document.getElementById('btnRemoveLeftChild').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree || !appState.selectedNodeId) return;
+      const node = findNodeById(tree.rootNode, appState.selectedNodeId);
+      if (!node || !node.leftChild) {
+        alert("El nodo seleccionado no tiene hijo izquierdo.");
+        return;
+      }
+
+      saveState();
+      node.leftChild = null;
+      refreshUI();
+    });
+
+    // Asignar / Agregar Hijo Derecho (addRightChild)
+    document.getElementById('btnAddRightChild').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree) {
+        alert("Primero crea un árbol.");
+        return;
+      }
+      if (!appState.selectedNodeId) {
+        alert("Selecciona un nodo padre.");
+        return;
+      }
+      const parent = findNodeById(tree.rootNode, appState.selectedNodeId);
+      if (!parent) return;
+
+      const input = document.getElementById('inputRightChildValue');
+      let val = input.value.trim();
+      if (!val) {
+        val = getRandomValue(tree.dataType);
+      } else if (tree.dataType === 'Integer' || tree.dataType === 'Double') {
+        val = Number(val);
+      }
+
+      saveState();
+      const newChild = createBinaryNode(val);
+      parent.rightChild = newChild;
+      input.value = '';
+      appState.selectedNodeId = newChild.id;
+      refreshUI();
+    });
+
+    // Quitar Hijo Derecho (removeRightChild)
+    document.getElementById('btnRemoveRightChild').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree || !appState.selectedNodeId) return;
+      const node = findNodeById(tree.rootNode, appState.selectedNodeId);
+      if (!node || !node.rightChild) {
+        alert("El nodo seleccionado no tiene hijo derecho.");
+        return;
+      }
+
+      saveState();
+      node.rightChild = null;
+      refreshUI();
+    });
+
+    // Eliminar nodo seleccionado
+    document.getElementById('btnDeleteNode').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree || !appState.selectedNodeId) return;
+
+      if (tree.rootNode.id === appState.selectedNodeId) {
+        if (confirm("¿Deseas eliminar la raíz? El árbol quedará vacío.")) {
+          saveState();
+          tree.rootNode = null;
+          appState.selectedNodeId = null;
+          refreshUI();
+        }
+        return;
+      }
+
+      saveState();
+      const parentInfo = findParentNode(tree.rootNode, appState.selectedNodeId);
+      if (parentInfo) {
+        if (parentInfo.branch === 'left') {
+          parentInfo.parent.leftChild = null;
+        } else {
+          parentInfo.parent.rightChild = null;
+        }
+        appState.selectedNodeId = parentInfo.parent.id;
+      }
+      refreshUI();
+    });
+
+    // Guardar Notas
+    document.getElementById('notesArea').addEventListener('input', (e) => {
+      appState.notes = e.target.value;
+    });
+
+    // Copiar Código al Portapapeles
+    document.getElementById('btnCopyCode').addEventListener('click', () => {
+      const code = document.getElementById('javaCodeBlock').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('btnCopyCode');
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Copiado!`;
+        lucide.createIcons();
+        setTimeout(() => { btn.innerHTML = orig; lucide.createIcons(); }, 1500);
+      });
+    });
+
+    /* ========================================================
+       MODAL DE CREACIÓN DE ÁRBOL (MANUAL / ALEATORIO)
+       ======================================================== */
+    const modal = document.getElementById('newTreeModal');
+    const openModalBtn = document.getElementById('btnOpenNewTreeModal');
+    const closeModalBtn = document.getElementById('btnCloseModal');
+    const cancelModalBtn = document.getElementById('btnCancelModal');
+    const confirmCreateBtn = document.getElementById('btnConfirmCreateTree');
+
+    const radioModes = document.querySelectorAll('input[name="createMode"]');
+    const manualSec = document.getElementById('manualOptionsSection');
+    const randomSec = document.getElementById('randomOptionsSection');
+    const randomTypeToggleWrap = document.getElementById('randomTypeToggleWrap');
+    const chkRandomDataType = document.getElementById('chkRandomDataType');
+    const modalDataType = document.getElementById('modalDataType');
+
+    openModalBtn.addEventListener('click', () => {
+      document.getElementById('modalTreeName').value = `ArbolBinario${appState.trees.length + 1}`;
+      document.getElementById('modalRootValue').value = "10";
+      modal.classList.remove('hidden');
+    });
+
+    const closeModal = () => modal.classList.add('hidden');
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelModalBtn.addEventListener('click', closeModal);
+
+    radioModes.forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.value === 'random') {
+          manualSec.classList.add('hidden');
+          randomSec.classList.remove('hidden');
+          randomTypeToggleWrap.classList.remove('hidden');
+        } else {
+          manualSec.classList.remove('hidden');
+          randomSec.classList.add('hidden');
+          randomTypeToggleWrap.classList.add('hidden');
+          chkRandomDataType.checked = false;
+          modalDataType.disabled = false;
+        }
+      });
+    });
+
+    chkRandomDataType.addEventListener('change', () => {
+      modalDataType.disabled = chkRandomDataType.checked;
+    });
+
+    confirmCreateBtn.addEventListener('click', () => {
+      const treeName = document.getElementById('modalTreeName').value.trim() || `ArbolBinario${appState.trees.length + 1}`;
+      const mode = document.querySelector('input[name="createMode"]:checked').value;
+      
+      const availableTypes = ["Integer", "String", "Character", "Double"];
+      let dataType = modalDataType.value;
+
+      if (mode === 'random' && chkRandomDataType.checked) {
+        dataType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+      }
+
+      let rootNode = null;
+
+      if (mode === 'manual') {
+        let rootVal = document.getElementById('modalRootValue').value.trim();
+        if (!rootVal) rootVal = getRandomValue(dataType);
+        else if (dataType === 'Integer' || dataType === 'Double') rootVal = Number(rootVal);
+        rootNode = createBinaryNode(rootVal);
+      } else {
+        // Modo Aleatorio con LÍMITES ESTRICTOS ANTICRASHEOS
+        const isRandomNodes = document.getElementById('chkRandomNodeCount').checked;
+        const isRandomDepth = document.getElementById('chkRandomDepth').checked;
+
+        // Limitar nodos: Máximo absoluto 35
+        let maxNodes = isRandomNodes 
+          ? Math.floor(Math.random() * 11) + 5 // entre 5 y 15
+          : parseInt(document.getElementById('modalMaxNodes').value) || 12;
+        maxNodes = Math.max(1, Math.min(35, maxNodes));
+
+        // Limitar altura: Máximo absoluto 5
+        let maxDepth = isRandomDepth 
+          ? Math.floor(Math.random() * 3) + 2 // entre 2 y 4
+          : parseInt(document.getElementById('modalMaxDepth').value) || 3;
+        maxDepth = Math.max(1, Math.min(5, maxDepth));
+
+        rootNode = generateRandomBinaryTreeWithLimits(dataType, maxNodes, maxDepth);
+      }
+
+      saveState();
+      const newTree = {
+        id: 'tree_' + Date.now(),
+        name: treeName,
+        dataType: dataType,
+        rootNode: rootNode
+      };
+
+      appState.trees.push(newTree);
+      appState.activeTreeId = newTree.id;
+      appState.selectedNodeId = rootNode.id;
+
+      closeModal();
+      refreshUI();
+    });
+
+    /* ========================================================
+       MODAL Y EXPORTACIÓN A PDF (1 HOJA EXACTA)
+       ======================================================== */
+    const pdfWrapper = document.getElementById('pdfExportWrapper');
+    const btnClosePDF = document.getElementById('btnClosePDFModal');
+    const btnDownloadPDF = document.getElementById('btnDownloadPDFDirect');
+
+    btnClosePDF.addEventListener('click', () => {
+      pdfWrapper.classList.add('hidden');
+    });
+
+    document.getElementById('btnExportPDF').addEventListener('click', () => {
+      const tree = getActiveTree();
+      if (!tree) {
+        alert("No hay ningún árbol creado para exportar.");
+        return;
+      }
+
+      document.getElementById('pdfTitle').textContent = `Informe de Estructura Binaria: ${tree.name}`;
+      document.getElementById('pdfSubtitle').textContent = `Tipo de dato: BinaryTree<${tree.dataType}> - Estructura de Datos`;
+      document.getElementById('pdfDate').textContent = `${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR')}`;
+
+      // Notas
+      const notesContent = appState.notes.trim() ? appState.notes : "(Sin notas registradas)";
+      document.getElementById('pdfNotesContent').textContent = notesContent;
+
+      // Código Java generado
+      const rawJava = generateJavaCode(tree);
+      const pdfJavaBlock = document.getElementById('pdfJavaCode');
+      pdfJavaBlock.textContent = rawJava;
+
+      // Ajustar dinámicamente el tamaño de fuente si el código es largo
+      const lineCount = rawJava.split('\n').length;
+      if (lineCount > 40) {
+        pdfJavaBlock.style.fontSize = '8px';
+        pdfJavaBlock.style.lineHeight = '1.15';
+      } else if (lineCount > 25) {
+        pdfJavaBlock.style.fontSize = '9px';
+        pdfJavaBlock.style.lineHeight = '1.25';
+      } else {
+        pdfJavaBlock.style.fontSize = '10px';
+        pdfJavaBlock.style.lineHeight = '1.35';
+      }
+
+      // Preparar el dibujo SVG exacto y renderizarlo en imagen PNG para máxima fidelidad en el PDF
+      const pdfVisual = document.getElementById('pdfVisualContainer');
+      pdfVisual.innerHTML = '';
+
+      if (tree.rootNode) {
+        const layout = calculateBinaryLayout(tree.rootNode);
+        
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const n of layout.nodes) {
+          if (n.x < minX) minX = n.x;
+          if (n.x > maxX) maxX = n.x;
+          if (n.y < minY) minY = n.y;
+          if (n.y > maxY) maxY = n.y;
+        }
+
+        const padX = 45;
+        const padY = 45;
+        const bX = minX - padX;
+        const bY = minY - padY;
+        const bW = Math.max(100, (maxX - minX) + padX * 2);
+        const bH = Math.max(100, (maxY - minY) + padY * 2);
+
+        // Altura dinámica proporcional pero delimitada para que quepa en 1 sola hoja A4
+        const containerWidth = 746; // Ancho interior de pdfVisualContainer
+        let calculatedHeight = Math.round(containerWidth * (bH / bW));
+        calculatedHeight = Math.min(360, Math.max(180, calculatedHeight));
+        pdfVisual.style.height = `${calculatedHeight}px`;
+
+        // Generar SVG con estilos inline garantizados
+        let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${bW}" height="${bH}" viewBox="${bX} ${bY} ${bW} ${bH}">
+          <rect x="${bX}" y="${bY}" width="${bW}" height="${bH}" fill="#ffffff" />
+          <g>`;
+
+        // Enlaces (aristas diferenciadas por rama izquierda/derecha)
+        for (const link of layout.links) {
+          const midY = (link.source.y + link.target.y) / 2;
+          const d = `M ${link.source.x} ${link.source.y} C ${link.source.x} ${midY}, ${link.target.x} ${midY}, ${link.target.x} ${link.target.y}`;
+          const strokeColor = link.type === 'left' ? '#60a5fa' : '#a78bfa';
+          svgContent += `<path d="${d}" fill="none" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" />`;
+
+          // Etiqueta I / D
+          const tagX = (link.source.x + link.target.x) / 2 + (link.type === 'left' ? -9 : 9);
+          const tagTextColor = link.type === 'left' ? '#3b82f6' : '#8b5cf6';
+          const tagText = link.type === 'left' ? 'I' : 'D';
+          svgContent += `<text x="${tagX}" y="${midY}" text-anchor="middle" dominant-baseline="central" fill="${tagTextColor}" font-size="10" font-family="monospace" font-weight="bold">${tagText}</text>`;
+        }
+
+        // Nodos
+        for (const node of layout.nodes) {
+          const isSelected = (node.id === appState.selectedNodeId);
+          const isLeaf = (!node.leftChild && !node.rightChild);
+          const fillCol = isLeaf ? '#10b981' : '#4f46e5';
+          const strokeCol = isSelected ? '#312e81' : (isLeaf ? '#059669' : '#3730a3');
+          const strokeWidth = isSelected ? '3.5' : '2';
+
+          let displayStr = String(node.data);
+          if (displayStr.length > 5) displayStr = displayStr.substring(0, 4) + '…';
+
+          svgContent += `<g transform="translate(${node.x}, ${node.y})">
+            <circle r="18" fill="${fillCol}" stroke="${strokeCol}" stroke-width="${strokeWidth}" />
+            <text text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-size="11" font-weight="bold" font-family="sans-serif">${displayStr}</text>
+          </g>`;
+        }
+
+        svgContent += `</g></svg>`;
+
+        // Convertir SVG a imagen PNG en alta resolución (garantiza que html2canvas y jsPDF lo impriman idéntico al 100%)
+        const img = new Image();
+        img.className = 'max-h-full max-w-full object-contain';
+        img.style.display = 'block';
+        img.style.margin = 'auto';
+
+        const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+        const URLObj = window.URL || window.webkitURL || window;
+        const blobURL = URLObj.createObjectURL(svgBlob);
+
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const scale = 2; // Alta resolución
+          canvas.width = bW * scale;
+          canvas.height = bH * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URLObj.revokeObjectURL(blobURL);
+
+          const pngDataUrl = canvas.toDataURL('image/png');
+          const finalImg = document.createElement('img');
+          finalImg.src = pngDataUrl;
+          finalImg.className = 'max-h-full max-w-full object-contain';
+          finalImg.style.maxHeight = '100%';
+          pdfVisual.innerHTML = '';
+          pdfVisual.appendChild(finalImg);
+        };
+        img.src = blobURL;
+
+      } else {
+        pdfVisual.style.height = '180px';
+        pdfVisual.innerHTML = '<span class="text-xs text-slate-400">Árbol vacío</span>';
+      }
+
+      // Mostrar modal centrado en pantalla
+      pdfWrapper.classList.remove('hidden');
+    });
+
+    btnDownloadPDF.addEventListener('click', () => {
+      const tree = getActiveTree();
+      const pdfContainer = document.getElementById('pdfExportContainer');
+
+      btnDownloadPDF.disabled = true;
+      btnDownloadPDF.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Generando...`;
+      lucide.createIcons();
+
+      const opt = {
+        margin:       0,
+        filename:     `${tree ? tree.name : 'Arbol'}_BinaryTree.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true,
+          logging: false
+        },
+        jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all'] }
+      };
+
+      html2pdf().set(opt).from(pdfContainer).save().then(() => {
+        btnDownloadPDF.disabled = false;
+        btnDownloadPDF.innerHTML = `<i data-lucide="download" class="w-4 h-4"></i> Guardar PDF`;
+        lucide.createIcons();
+      }).catch(err => {
+        console.error(err);
+        btnDownloadPDF.disabled = false;
+        btnDownloadPDF.innerHTML = `<i data-lucide="download" class="w-4 h-4"></i> Guardar PDF`;
+        lucide.createIcons();
+        alert("Ocurrió un error al generar el archivo PDF.");
+      });
+    });
+
+    /* ========================================================
+       INICIALIZACIÓN POR DEFECTO
+       ======================================================== */
+    (function init() {
+      // Crear un árbol binario inicial de ejemplo
+      //          (10)
+      //         /    \
+      //       (5)    (20)
+      //       /  \      \
+      //     (2)  (7)    (35)
+      const initialRoot = createBinaryNode(10);
+      const leftChild = createBinaryNode(5);
+      const rightChild = createBinaryNode(20);
+      
+      leftChild.leftChild = createBinaryNode(2);
+      leftChild.rightChild = createBinaryNode(7);
+      rightChild.rightChild = createBinaryNode(35);
+
+      initialRoot.leftChild = leftChild;
+      initialRoot.rightChild = rightChild;
+
+      const defaultTree = {
+        id: 'tree_init',
+        name: 'ArbolBinarioEjemplo',
+        dataType: 'Integer',
+        rootNode: initialRoot
+      };
+
+      appState.trees.push(defaultTree);
+      appState.activeTreeId = defaultTree.id;
+      appState.selectedNodeId = initialRoot.id;
+      appState.notes = "Árbol binario de ejemplo inicial creado con tipo Integer.\nRaíz con valor 10, subárbol izquierdo (5) con hijos (2 y 7), y subárbol derecho (20) con hijo derecho (35).";
+
+      saveState();
+      refreshUI();
+    })();
+  </script>
+</body>
+</html>
