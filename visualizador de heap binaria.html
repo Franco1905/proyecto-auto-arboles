@@ -9,30 +9,31 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+    /* Estilos personalizados y de árbol SVG adaptados a index.html */
+    .tree-node circle {
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
-    
-    .font-mono-code {
-      font-family: 'JetBrains Mono', monospace;
+    .tree-node circle:hover {
+      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.7));
     }
-    
-    /* El candidato NO tiene animación de movimiento ni escala */
+    .tree-link {
+      fill: none;
+      stroke: #94a3b8;
+      stroke-width: 2px;
+      stroke-linecap: round;
+      transition: stroke 0.2s ease, stroke-width 0.2s ease;
+    }
     .node-group {
-      /* Estático sin traslación */
+      /* Estático sin traslación ni movimiento */
     }
-    
     .node-circle {
       transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
     }
-    
-    .tree-edge {
-      transition: stroke 0.2s ease, stroke-width 0.2s ease;
+    pre, code, .font-mono {
+      font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
     }
-    
-    /* Scrollbar personalizada */
+    /* Scrollbar personalizada como en index.html */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -49,171 +50,166 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
 
-  <!-- ENCABEZADO SUPERIOR -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+  <!-- ENCABEZADO (Idéntico a index.html) -->
+  <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700 sticky top-0 z-30 px-6 py-3 flex flex-wrap items-center justify-between gap-4 shadow-md">
     <div class="flex items-center gap-3">
-      <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-blue-500/25 ring-1 ring-white/20">
-        <i data-lucide="binary" class="w-6 h-6 text-white"></i>
+      <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/30">
+        <i data-lucide="binary" class="w-6 h-6"></i>
       </div>
       <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-2">
-            Visualizador de Heap Binaria
-          </h1>
-        </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Representación secuencial en arreglo, Filtrados (Percolate Up / Down), BuildHeap y HeapSort</p>
+        <h1 class="font-bold text-lg text-white leading-tight">Visualizador de Heap Binaria</h1>
+        <p class="text-xs text-slate-400">Representación secuencial en arreglo, Filtrados (Percolate Up / Down), BuildHeap y HeapSort</p>
       </div>
     </div>
 
-    <!-- Acciones rápidas de cabecera -->
-    <div class="flex items-center gap-2">
+    <!-- Acciones de cabecera -->
+    <div class="flex items-center flex-wrap gap-2">
       <!-- Selector de Modo Heap -->
-      <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-semibold">
-        <button id="btn-mode-min" onclick="setHeapType('min')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
+      <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs font-semibold">
+        <button id="btn-mode-min" onclick="setHeapType('min')" class="px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
           <i data-lucide="arrow-down-narrow-wide" class="w-3.5 h-3.5"></i>
           <span>MinHeap</span>
         </button>
-        <button id="btn-mode-max" onclick="setHeapType('max')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
+        <button id="btn-mode-max" onclick="setHeapType('max')" class="px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
           <i data-lucide="arrow-up-wide-narrow" class="w-3.5 h-3.5"></i>
           <span>MaxHeap</span>
         </button>
       </div>
 
+      <div class="h-5 w-px bg-slate-700 mx-1"></div>
+
       <!-- Botón de Teoría / Modal -->
-      <button onclick="openTheoryModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+      <button onclick="openTheoryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium transition shadow-sm">
         <i data-lucide="book-open" class="w-4 h-4 text-amber-400"></i>
-        <span class="hidden md:inline">Resumen Teórico</span>
+        <span>Resumen Teórico</span>
       </button>
 
       <!-- Botón de Ejemplos Predefinidos -->
       <div class="relative">
-        <button onclick="toggleExamplesMenu()" id="btn-examples" class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+        <button onclick="toggleExamplesMenu()" id="btn-examples" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-semibold shadow-sm transition">
           <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
-          <span class="hidden md:inline">Ejemplos Predefinidos</span>
+          <span>Ejemplos Predefinidos</span>
           <i data-lucide="chevron-down" class="w-3 h-3"></i>
         </button>
-        <div id="examples-menu" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1">
-          <button onclick="loadSlideExample(1)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">Inserción 1 a 1 (MinHeap)</span>
-            <span class="text-slate-400 font-mono-code text-[11px]">[8, 12, 9, 7, 10, 21, 6, 4]</span>
+        <div id="examples-menu" class="hidden absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1">
+          <button onclick="loadSlideExample(1)" class="w-full text-left p-2 rounded-lg hover:bg-slate-700 transition flex flex-col">
+            <span class="font-semibold text-slate-200">Inserción 1 a 1 (MinHeap)</span>
+            <span class="text-slate-400 font-mono text-[11px]">[8, 12, 9, 7, 10, 21, 6, 4]</span>
           </button>
-          <button onclick="loadSlideExample(2)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">BuildHeap O(N) (MinHeap)</span>
-            <span class="text-slate-400 font-mono-code text-[11px]">[5, 8, 12, 9, 7, 10, 21, 6, 14, 4]</span>
+          <button onclick="loadSlideExample(2)" class="w-full text-left p-2 rounded-lg hover:bg-slate-700 transition flex flex-col">
+            <span class="font-semibold text-slate-200">BuildHeap O(N) (MinHeap)</span>
+            <span class="text-slate-400 font-mono text-[11px]">[5, 8, 12, 9, 7, 10, 21, 6, 14, 4]</span>
           </button>
-          <button onclick="loadSlideExample(3)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">HeapSort In-Place (MaxHeap)</span>
-            <span class="text-slate-400 font-mono-code text-[11px]">[9, 50, 18, 30, 22, 12, 15, 25]</span>
+          <button onclick="loadSlideExample(3)" class="w-full text-left p-2 rounded-lg hover:bg-slate-700 transition flex flex-col">
+            <span class="font-semibold text-slate-200">HeapSort In-Place (MaxHeap)</span>
+            <span class="text-slate-400 font-mono text-[11px]">[9, 50, 18, 30, 22, 12, 15, 25]</span>
           </button>
-          <button onclick="loadSlideExample(4)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">HeapSort con 2 arreglos (MinHeap)</span>
-            <span class="text-slate-400 font-mono-code text-[11px]">[50, 30, 18, 25, 22, 12]</span>
+          <button onclick="loadSlideExample(4)" class="w-full text-left p-2 rounded-lg hover:bg-slate-700 transition flex flex-col">
+            <span class="font-semibold text-slate-200">HeapSort con 2 arreglos (MinHeap)</span>
+            <span class="text-slate-400 font-mono text-[11px]">[50, 30, 18, 25, 22, 12]</span>
           </button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL -->
-  <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 max-w-[1920px] mx-auto w-full">
+  <!-- CONTENEDOR PRINCIPAL (Mismo formato de espaciado y grids que index.html) -->
+  <main class="flex-1 p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1900px] w-full mx-auto">
 
-    <!-- PANEL LATERAL IZQUIERDO: CONTROLES Y OPERACIONES (col-span-3) -->
-    <aside class="lg:col-span-3 flex flex-col gap-4">
+    <!-- PANEL LATERAL IZQUIERDO: CONTROLES Y OPERACIONES (col-span-4) -->
+    <div class="lg:col-span-4 flex flex-col gap-5">
       
       <!-- CARD 1: CONSTRUCCIÓN DE LA HEAP -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
-          <div class="flex items-center gap-2">
-            <i data-lucide="plus-circle" class="w-4 h-4 text-blue-400"></i>
-            <h2 class="text-sm font-bold tracking-wide uppercase text-slate-300">1. Construcción de Heap</h2>
-          </div>
-          <span id="badge-heap-type" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase">MinHeap</span>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+          <label class="text-xs font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-blue-400"></i> 1. Construcción de Heap
+          </label>
+          <span id="badge-heap-type" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950/70 border border-blue-800/50 text-blue-400 uppercase">MinHeap</span>
         </div>
 
         <!-- Entrada de Datos -->
-        <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1.5 flex justify-between">
-            <span>Datos iniciales:</span>
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-xs">
+            <label class="text-slate-300 font-medium">Datos iniciales:</label>
             <button onclick="generateRandomData()" class="text-blue-400 hover:text-blue-300 text-[11px] font-semibold flex items-center gap-1">
               <i data-lucide="dice-5" class="w-3 h-3"></i> Aleatorios
             </button>
-          </label>
+          </div>
           <input id="input-dataset" type="text" value="8, 12, 9, 7, 10, 21, 6, 4" 
             placeholder="Ej: 8, 12, 9, 7, 10, 21, 6, 4" 
-            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono-code text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-inner">
+            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
         </div>
 
         <!-- Algoritmo de Construcción -->
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="buildHeapAction('insert-each')" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-slate-600 text-slate-200 transition text-left flex flex-col justify-between group">
+          <button onclick="buildHeapAction('insert-each')" class="p-2.5 rounded-lg bg-slate-900/60 hover:bg-slate-700 border border-slate-700 text-slate-200 transition text-left flex flex-col justify-between group">
             <div class="flex items-center justify-between w-full mb-1">
               <span class="text-xs font-bold text-white group-hover:text-blue-400 transition">1 a 1 (Insert)</span>
-              <span class="text-[10px] font-mono-code px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold">O(N log N)</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-semibold">O(N log N)</span>
             </div>
             <p class="text-[11px] text-slate-400 leading-tight">Inserta de a uno filtrando hacia arriba (Percolate Up).</p>
           </button>
 
-          <button onclick="buildHeapAction('build-heap')" class="p-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 hover:border-blue-500/60 text-slate-200 transition text-left flex flex-col justify-between group">
+          <button onclick="buildHeapAction('build-heap')" class="p-2.5 rounded-lg bg-blue-950/50 hover:bg-blue-900/60 border border-blue-800/60 text-slate-200 transition text-left flex flex-col justify-between group">
             <div class="flex items-center justify-between w-full mb-1">
               <span class="text-xs font-bold text-blue-300 group-hover:text-blue-200 transition">BuildHeap (Floyd)</span>
-              <span class="text-[10px] font-mono-code px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">O(N)</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">O(N)</span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-tight">Filtrado abajo desde ⌊N/2⌋ hasta 1 (Lineal).</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Filtrado abajo desde floor(N/2) hasta 1 (Lineal).</p>
           </button>
         </div>
       </div>
 
       <!-- CARD 2: OPERACIONES BÁSICAS -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
-          <div class="flex items-center gap-2">
-            <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i>
-            <h2 class="text-sm font-bold tracking-wide uppercase text-slate-300">2. Operaciones</h2>
-          </div>
-          <span class="text-[10px] text-slate-400">O(log N)</span>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+          <label class="text-xs font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i> 2. Operaciones
+          </label>
+          <span class="text-[10px] font-mono text-slate-400">O(log N)</span>
         </div>
 
         <!-- Inserción individual -->
-        <div class="flex gap-2">
-          <input id="input-single-val" type="number" placeholder="Valor" value="5"
-            class="w-24 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono-code text-slate-100 focus:outline-none focus:border-blue-500 transition shadow-inner">
-          <button onclick="insertSingleElementAction()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition">
-            <i data-lucide="arrow-down-to-dot" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span>Insert(x)</span>
-          </button>
+        <div class="space-y-1.5">
+          <label class="text-slate-300 text-xs font-medium">Insertar elemento:</label>
+          <div class="flex gap-2">
+            <input id="input-single-val" type="number" placeholder="Valor" value="5"
+              class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <button onclick="insertSingleElementAction()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-3 py-1.5 text-xs font-semibold shadow-md shadow-blue-600/30 flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Insert(x)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Delete Root (DeleteMin / DeleteMax) -->
-        <div class="grid grid-cols-2 gap-2">
-          <button id="btn-delete-root" onclick="deleteRootAction()" class="col-span-2 p-2.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 transition font-bold text-xs flex items-center justify-center gap-2 shadow-sm">
-            <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i>
-            <span id="label-delete-root">DeleteMin()</span>
-          </button>
-        </div>
+        <button id="btn-delete-root" onclick="deleteRootAction()" class="w-full p-2.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-800/50 text-rose-300 transition font-bold text-xs flex items-center justify-center gap-2">
+          <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+          <span id="label-delete-root">DeleteMin()</span>
+        </button>
 
         <!-- Operaciones Avanzadas (DecreaseKey / IncreaseKey / DeleteKey) -->
-        <div class="border-t border-slate-800/80 pt-2.5 flex flex-col gap-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Modificar Clave</span>
-          </div>
+        <div class="border-t border-slate-700/60 pt-2.5 flex flex-col gap-2">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Modificar Clave</span>
           <div class="grid grid-cols-3 gap-2">
             <input id="input-key-pos" type="number" min="1" placeholder="Posición i" value="1"
-              class="col-span-1 bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-xs font-mono-code text-slate-100 focus:outline-none focus:border-blue-500">
+              class="col-span-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <input id="input-key-delta" type="number" placeholder="Δ Delta" value="10"
-              class="col-span-1 bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-xs font-mono-code text-slate-100 focus:outline-none focus:border-blue-500">
-            <button onclick="applyKeyDeltaAction('decrease')" title="DecreaseKey" class="col-span-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-200 flex items-center justify-center gap-1">
+              class="col-span-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-mono text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="applyKeyDeltaAction('decrease')" title="DecreaseKey" class="col-span-1 bg-slate-700 hover:bg-slate-600 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-200 flex items-center justify-center gap-1 transition">
               <i data-lucide="minus" class="w-3 h-3 text-amber-400"></i>
               <span>DecKey</span>
             </button>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button onclick="applyKeyDeltaAction('increase')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-1.5 text-xs font-bold text-slate-200 flex items-center justify-center gap-1">
+            <button onclick="applyKeyDeltaAction('increase')" class="bg-slate-700 hover:bg-slate-600 rounded-lg py-1.5 text-xs font-semibold text-slate-200 flex items-center justify-center gap-1 transition">
               <i data-lucide="plus" class="w-3 h-3 text-emerald-400"></i>
               <span>IncreaseKey(i, Δ)</span>
             </button>
-            <button onclick="deleteKeyAction()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-1.5 text-xs font-bold text-slate-200 flex items-center justify-center gap-1">
+            <button onclick="deleteKeyAction()" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-800/50 rounded-lg py-1.5 text-xs font-semibold text-rose-300 flex items-center justify-center gap-1 transition">
               <i data-lucide="x" class="w-3 h-3 text-rose-400"></i>
               <span>DeleteKey(i)</span>
             </button>
@@ -222,130 +218,128 @@
       </div>
 
       <!-- CARD 3: HEAPSORT COMPLETO -->
-      <div class="bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-900/50 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
-        <div class="flex items-center justify-between border-b border-indigo-900/40 pb-2.5">
-          <div class="flex items-center gap-2">
-            <i data-lucide="arrow-down-up" class="w-4 h-4 text-indigo-400"></i>
-            <h2 class="text-sm font-bold tracking-wide uppercase text-indigo-200">3. Algoritmo HeapSort</h2>
-          </div>
-          <span class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold">O(N log N)</span>
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+          <label class="text-xs font-semibold tracking-wider text-indigo-300 uppercase flex items-center gap-2">
+            <i data-lucide="arrow-down-up" class="w-4 h-4 text-indigo-400"></i> 3. Algoritmo HeapSort
+          </label>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950/70 border border-indigo-800/50 text-indigo-300 font-semibold">O(N log N)</span>
         </div>
 
-        <p class="text-[11px] text-slate-300 leading-relaxed">
+        <p class="text-[11px] text-slate-400 leading-relaxed">
           Ordenación in-place completa: muestra paso a paso la construcción de la heap inicial (Fase 1) y luego los intercambios, reducción del tamaño y filtrados hacia abajo (Fase 2).
         </p>
 
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="runHeapSortAction('asc')" class="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition">
+          <button onclick="runHeapSortAction('asc')" class="p-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-600/30 transition">
             <i data-lucide="trending-up" class="w-4 h-4"></i>
             <span>HeapSort (Creciente)</span>
           </button>
-          <button onclick="runHeapSortAction('desc')" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition">
+          <button onclick="runHeapSortAction('desc')" class="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 transition">
             <i data-lucide="trending-down" class="w-4 h-4"></i>
             <span>HeapSort (Decreciente)</span>
           </button>
         </div>
       </div>
 
-    </aside>
+    </div>
 
-    <!-- PANEL CENTRAL Y DERECHO: VISUALIZACIÓN DUAL Y CONTROL PASO A PASO (col-span-9) -->
-    <main class="lg:col-span-9 flex flex-col gap-4">
+    <!-- PANEL CENTRAL Y DERECHO: VISUALIZACIÓN DUAL Y CONTROL PASO A PASO (col-span-8) -->
+    <div class="lg:col-span-8 flex flex-col gap-5">
 
       <!-- BARRA DE REPRODUCCIÓN Y CONTROL PASO A PASO -->
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 md:p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
         
         <!-- Botones de Control de Pasos -->
         <div class="flex items-center gap-1.5 sm:gap-2">
-          <button id="btn-first" onclick="playerFirst()" title="Ir al inicio" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none">
+          <button id="btn-first" onclick="playerFirst()" title="Ir al inicio" class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
             <i data-lucide="chevrons-left" class="w-4 h-4"></i>
           </button>
-          <button id="btn-prev" onclick="playerPrev()" title="Paso anterior (Atrás)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1 transition disabled:opacity-30 disabled:pointer-events-none">
+          <button id="btn-prev" onclick="playerPrev()" title="Paso anterior (Atrás)" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs flex items-center gap-1 transition disabled:opacity-40 disabled:cursor-not-allowed">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
             <span class="hidden sm:inline">Anterior</span>
           </button>
           
-          <button id="btn-play" onclick="playerTogglePlay()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/30 transition">
+          <button id="btn-play" onclick="playerTogglePlay()" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-2 shadow-md shadow-blue-600/30 transition">
             <i id="icon-play" data-lucide="play" class="w-4 h-4"></i>
             <span id="label-play">Reproducir</span>
           </button>
           
-          <button id="btn-next" onclick="playerNext()" title="Paso siguiente (Adelante)" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1 transition disabled:opacity-30 disabled:pointer-events-none">
+          <button id="btn-next" onclick="playerNext()" title="Paso siguiente (Adelante)" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs flex items-center gap-1 transition disabled:opacity-40 disabled:cursor-not-allowed">
             <span class="hidden sm:inline">Siguiente</span>
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
           </button>
-          <button id="btn-last" onclick="playerLast()" title="Ir al final" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none">
+          <button id="btn-last" onclick="playerLast()" title="Ir al final" class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
             <i data-lucide="chevrons-right" class="w-4 h-4"></i>
           </button>
         </div>
 
         <!-- Indicador de Paso y Barra Scrubber -->
-        <div class="flex-1 min-w-[200px] flex items-center gap-3">
-          <span id="label-step-counter" class="text-xs font-mono-code font-bold text-slate-300 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">Paso 0 / 0</span>
+        <div class="flex-1 min-w-[180px] flex items-center gap-3">
+          <span id="label-step-counter" class="text-xs font-mono font-bold text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">Paso 0 / 0</span>
           <input id="slider-steps" type="range" min="0" max="0" value="0" oninput="playerGoTo(parseInt(this.value))" 
-            class="flex-1 accent-blue-500 h-2 bg-slate-800 rounded-lg cursor-pointer">
+            class="flex-1 accent-blue-500 h-2 bg-slate-900 rounded-lg cursor-pointer">
         </div>
 
         <!-- Selector de Velocidad -->
-        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">
           <i data-lucide="gauge" class="w-4 h-4 text-slate-400"></i>
           <span class="text-xs text-slate-400 font-medium hidden sm:inline">Velocidad:</span>
           <select id="select-speed" onchange="setPlaybackSpeed(this.value)" class="bg-transparent text-xs font-semibold text-slate-200 focus:outline-none cursor-pointer">
-            <option value="2000" class="bg-slate-900">0.5x (Lento)</option>
-            <option value="1200" selected class="bg-slate-900">1.0x (Normal)</option>
-            <option value="600" class="bg-slate-900">2.0x (Rápido)</option>
-            <option value="250" class="bg-slate-900">4.0x (Flash)</option>
+            <option value="2000" class="bg-slate-800">0.5x (Lento)</option>
+            <option value="1200" selected class="bg-slate-800">1.0x (Normal)</option>
+            <option value="600" class="bg-slate-800">2.0x (Rápido)</option>
+            <option value="250" class="bg-slate-800">4.0x (Flash)</option>
           </select>
         </div>
 
       </div>
 
       <!-- EXPLICACIÓN DINÁMICA DEL PASO ACTUAL (NARRADOR ALGORÍTMICO) -->
-      <div id="narrative-box" class="bg-gradient-to-r from-blue-950/40 via-slate-900 to-slate-900 border-l-4 border-l-blue-500 border border-slate-800 rounded-xl p-3.5 shadow-md flex items-start gap-3 transition-all">
-        <div id="narrative-icon" class="p-2 rounded-lg bg-blue-500/20 text-blue-400 shrink-0 mt-0.5">
+      <div id="narrative-box" class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm border-l-4 border-l-blue-500 flex items-start gap-3 transition-all">
+        <div id="narrative-icon" class="p-2 rounded-lg bg-blue-950/80 border border-blue-800/50 text-blue-400 shrink-0 mt-0.5">
           <i data-lucide="info" class="w-5 h-5"></i>
         </div>
         <div class="flex-1">
           <div class="flex items-center justify-between gap-2 mb-1">
             <h3 id="narrative-title" class="text-xs font-bold uppercase tracking-wider text-blue-300">Bienvenido al Simulador</h3>
-            <span id="narrative-tag" class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Listo</span>
+            <span id="narrative-tag" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">Listo</span>
           </div>
-          <p id="narrative-desc" class="text-xs text-slate-300 leading-relaxed font-sans">
+          <p id="narrative-desc" class="text-xs text-slate-300 leading-relaxed">
             Elige un conjunto de datos o carga un ejemplo para iniciar la construcción paso a paso. Cada filtrado hacia arriba (Percolate Up) o hacia abajo (Percolate Down) mantiene intactas las propiedades de estructura y de orden de la Heap Binaria.
           </p>
         </div>
       </div>
 
-      <!-- VISUALIZACIÓN DUAL: ÁRBOL COMPLETO (SVG) Y VECTOR CON PANEL DE ESTADO -->
-      <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1">
+      <!-- VISUALIZACIÓN DUAL: ÁRBOL COMPLETO Y VECTOR CON PANEL DE ESTADO -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 flex-1">
         
         <!-- SUBAREA IZQUIERDA: ÁRBOL BINARIO SVG (col-span-8) -->
-        <div class="xl:col-span-8 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col min-h-[460px]">
+        <div class="xl:col-span-8 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col min-h-[460px]">
           
-          <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
-            <div class="flex items-center gap-2">
+          <div class="p-3 bg-slate-800/90 border-b border-slate-700/60 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-slate-200">
               <i data-lucide="git-fork" class="w-4 h-4 text-blue-400"></i>
-              <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Representación Jerárquica (Árbol Binario Completo)</h3>
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Árbol Binario Completo</span>
             </div>
             
             <!-- Leyenda de colores -->
-            <div class="hidden sm:flex items-center gap-3 text-[11px] font-medium text-slate-400">
-              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Candidato / Actual</span>
+            <div class="flex items-center gap-3 text-[11px] font-medium text-slate-400">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Candidato</span>
               <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Comparado</span>
               <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Ordenado</span>
             </div>
           </div>
 
-          <!-- Canvas / SVG para el árbol -->
-          <div class="flex-1 w-full relative overflow-auto rounded-xl bg-slate-950/70 border border-slate-800/50 flex items-center justify-center p-2">
+          <!-- Canvas SVG para el árbol (bg-slate-950 idéntico a index.html) -->
+          <div class="flex-1 w-full relative overflow-auto bg-slate-950 flex items-center justify-center p-2 select-none">
             <svg id="heap-svg" class="w-full h-full min-h-[400px]" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid meet">
               <g id="svg-edges"></g>
               <g id="svg-nodes"></g>
             </svg>
             
-            <!-- Overlay si heap está vacía -->
             <div id="empty-heap-msg" class="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-500 gap-2 pointer-events-none">
-              <i data-lucide="layers" class="w-10 h-10 stroke-1"></i>
+              <i data-lucide="layers" class="w-10 h-10 opacity-50"></i>
               <span class="text-xs">La heap está vacía. Añade elementos o carga un ejemplo.</span>
             </div>
           </div>
@@ -353,20 +347,19 @@
         </div>
 
         <!-- SUBAREA DERECHA: ALMACENAMIENTO EN ARREGLO Y ESTADO (col-span-4) -->
-        <div class="xl:col-span-4 flex flex-col gap-4">
+        <div class="xl:col-span-4 flex flex-col gap-5">
 
           <!-- VECTOR / ARREGLO CON ÍNDICES 1 A N -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col">
-            <div class="flex items-center justify-between mb-2.5 border-b border-slate-800/80 pb-2">
-              <div class="flex items-center gap-2">
-                <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-400"></i>
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Almacenamiento en Arreglo</h3>
-              </div>
-              <span class="text-[10px] font-mono-code text-slate-400">Base 1</span>
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-2.5 border-b border-slate-700/60 pb-2">
+              <label class="text-xs font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-400"></i> Almacenamiento en Arreglo
+              </label>
+              <span class="text-[10px] font-mono text-slate-400">Base 1</span>
             </div>
 
             <p class="text-[11px] text-slate-400 mb-2">
-              Hijo izq: <span class="font-mono-code text-blue-400">2·i</span> | Hijo der: <span class="font-mono-code text-blue-400">2·i+1</span> | Padre: <span class="font-mono-code text-blue-400">⌊i/2⌋</span>
+              Hijo izq: <span class="font-mono text-blue-400">2·i</span> | Hijo der: <span class="font-mono text-blue-400">2·i+1</span> | Padre: <span class="font-mono text-blue-400">floor(i / 2)</span>
             </p>
 
             <!-- Contenedor con scroll para celdas del vector -->
@@ -378,68 +371,67 @@
           </div>
 
           <!-- PANEL DE ESTADO Y MÉTRICAS DE LA HEAP -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
-            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-              <div class="flex items-center gap-2">
-                <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Estado y Propiedades</h3>
-              </div>
-              <span id="metric-heap-type" class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase">MinHeap</span>
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+              <label class="text-xs font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i> Estado y Propiedades
+              </label>
+              <span id="metric-heap-type" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-950/70 border border-blue-800/50 text-blue-400 uppercase">MinHeap</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
                 <span class="text-[11px] text-slate-400 block mb-0.5">Elementos activos (n)</span>
-                <span id="metric-n" class="text-base font-bold font-mono-code text-white">0</span>
+                <span id="metric-n" class="text-base font-bold font-mono text-white">0</span>
               </div>
-              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
-                <span class="text-[11px] text-slate-400 block mb-0.5">Altura (h = ⌊log₂ n⌋)</span>
-                <span id="metric-h" class="text-base font-bold font-mono-code text-amber-300">0</span>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Altura (h = floor(log₂ n))</span>
+                <span id="metric-h" class="text-base font-bold font-mono text-amber-300">0</span>
               </div>
-              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
                 <span class="text-[11px] text-slate-400 block mb-0.5">Elemento Raíz [1]</span>
-                <span id="metric-root" class="text-base font-bold font-mono-code text-emerald-300">-</span>
+                <span id="metric-root" class="text-base font-bold font-mono text-emerald-300">-</span>
               </div>
-              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
                 <span class="text-[11px] text-slate-400 block mb-0.5">Última posición [n]</span>
-                <span id="metric-last" class="text-base font-bold font-mono-code text-indigo-300">-</span>
+                <span id="metric-last" class="text-base font-bold font-mono text-indigo-300">-</span>
               </div>
             </div>
 
-            <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/60 text-[11px] text-slate-400 leading-relaxed font-mono-code">
+            <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-700/50 text-[11px] text-slate-400 leading-relaxed font-mono">
               <div>• Raíz en posición 1</div>
               <div>• Hijo Izquierdo = 2 · i</div>
               <div>• Hijo Derecho = 2 · i + 1</div>
-              <div>• Padre = ⌊i / 2⌋</div>
+              <div>• Padre = floor(i / 2)</div>
             </div>
           </div>
 
           <!-- RESULTADO DE HEAPSORT -->
-          <div id="heapsort-result-box" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col hidden">
-            <div class="flex items-center justify-between mb-2 border-b border-slate-800/80 pb-2">
+          <div id="heapsort-result-box" class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col hidden">
+            <div class="flex items-center justify-between mb-2 border-b border-slate-700/60 pb-2">
               <div class="flex items-center gap-2">
                 <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
                 <span class="text-[11px] font-bold text-indigo-300 uppercase">Vector Ordenado Final:</span>
               </div>
-              <span id="heapsort-status-tag" class="text-[10px] font-mono-code text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">En proceso</span>
+              <span id="heapsort-status-tag" class="text-[10px] font-mono text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">En proceso</span>
             </div>
-            <div id="heapsort-result-cells" class="flex gap-1 overflow-x-auto p-1 font-mono-code text-xs"></div>
+            <div id="heapsort-result-cells" class="flex gap-1 overflow-x-auto p-1 font-mono text-xs"></div>
           </div>
 
         </div>
 
       </div>
 
-    </main>
+    </div>
 
-  </div>
+  </main>
 
-  <!-- MODAL DE TEORÍA Y FUNDAMENTOS -->
-  <div id="theory-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+  <!-- MODAL DE TEORÍA Y FUNDAMENTOS (Estilo idéntico a index.html) -->
+  <div id="theory-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
       
       <!-- Modal Header -->
-      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+      <div class="p-5 border-b border-slate-700 flex justify-between items-center bg-slate-800/90">
         <div class="flex items-center gap-3">
           <div class="p-2 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30">
             <i data-lucide="book-marked" class="w-5 h-5"></i>
@@ -449,7 +441,7 @@
             <p class="text-xs text-slate-400">Estructuras de Datos y Algoritmos: Árbol Binario Completo y Colas de Prioridad</p>
           </div>
         </div>
-        <button onclick="closeTheoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
+        <button onclick="closeTheoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -458,7 +450,7 @@
       <div class="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
         
         <!-- 1. Definición -->
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
           <h3 class="text-sm font-bold text-blue-400 mb-1 flex items-center gap-2">
             <i data-lucide="layers" class="w-4 h-4"></i> 1. ¿Qué es una Cola de Prioridad y una Heap Binaria?
           </h3>
@@ -467,26 +459,26 @@
             <code class="text-blue-300">Insert(x)</code> (agrega un elemento) y <code class="text-blue-300">DeleteMin()</code> o <code class="text-blue-300">DeleteMax()</code> (extrae y elimina el elemento de mayor prioridad).
           </p>
           <p class="mt-2 text-slate-400">
-            Una <strong>Heap Binaria</strong> implementa esta estructura sin utilizar punteros dinámicos, garantizando ambas operaciones en tiempo <strong class="text-white">O(log <i>N</i>)</strong> en el peor caso.
+            Una <strong>Heap Binaria</strong> implementa esta estructura sin utilizar punteros dinámicos, garantizando ambas operaciones en tiempo <strong class="text-white">O(log N)</strong> en el peor caso.
           </p>
         </div>
 
         <!-- 2. Propiedades -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
             <h4 class="font-bold text-amber-400 mb-1">Propiedad Estructural</h4>
             <p class="text-slate-300 text-xs leading-relaxed">
-              Es un <strong>árbol binario completo</strong>: lleno hasta el nivel <i>h</i> − 1 y en el nivel <i>h</i> los nodos se ubican consecutivamente de izquierda a derecha sin huecos intermedios. Por lo tanto, la altura es exactamente <i>h</i> = ⌊log₂ <i>n</i>⌋ = O(log <i>n</i>).
+              Es un <strong>árbol binario completo</strong>: lleno hasta el nivel <i>h</i> − 1 y en el nivel <i>h</i> los nodos se ubican consecutivamente de izquierda a derecha sin huecos intermedios. Por lo tanto, la altura es exactamente <i>h</i> = floor(log₂ <i>n</i>) = O(log <i>n</i>).
             </p>
-            <div class="mt-2 bg-slate-900 p-2 rounded-lg font-mono-code text-[11px] text-blue-300">
+            <div class="mt-2 bg-slate-900 p-2 rounded-lg font-mono text-[11px] text-blue-300">
               Raíz = 1<br>
               Hijo Izquierdo = 2 · i<br>
               Hijo Derecho = 2 · i + 1<br>
-              Padre = ⌊i / 2⌋
+              Padre = floor(i / 2)
             </div>
           </div>
 
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
             <h4 class="font-bold text-emerald-400 mb-1">Propiedad de Orden</h4>
             <p class="text-slate-300 text-xs leading-relaxed">
               • <strong>MinHeap:</strong> La clave de cada nodo es menor o igual a las claves de sus hijos (<code class="text-emerald-300">dato[i] ≤ dato[hijos]</code>). El mínimo absoluto está en la raíz <code class="text-emerald-300">dato[1]</code>.<br>
@@ -496,18 +488,18 @@
         </div>
 
         <!-- 3. BuildHeap vs Inserción 1 a 1 -->
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
           <h3 class="text-sm font-bold text-indigo-400 mb-1">3. ¿Cómo construir una Heap a partir de un arreglo?</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 text-xs">
-            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800">
+            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-700">
               <span class="font-bold text-amber-300">Inserción uno a uno:</span>
               <p class="mt-1 text-slate-400">Inserta cada uno de los <i>N</i> elementos secuencialmente aplicando <em>Percolate Up</em>.</p>
-              <div class="mt-2 text-amber-400 font-mono-code font-bold">Costo: O(<i>N</i> log <i>N</i>)</div>
+              <div class="mt-2 text-amber-400 font-mono font-bold">Costo: O(N log N)</div>
             </div>
             <div class="p-3 bg-slate-900/80 rounded-lg border border-blue-900/40">
               <span class="font-bold text-blue-300">Algoritmo BuildHeap (Floyd):</span>
-              <p class="mt-1 text-slate-400">Coloca todos los elementos en el arreglo y filtra hacia abajo desde la posición ⌊<i>N</i> / 2⌋ hasta 1.</p>
-              <div class="mt-2 text-emerald-400 font-mono-code font-bold">Costo: O(<i>N</i>) lineal</div>
+              <p class="mt-1 text-slate-400">Coloca todos los elementos en el arreglo y filtra hacia abajo desde la posición floor(N / 2) hasta 1.</p>
+              <div class="mt-2 text-emerald-400 font-mono font-bold">Costo: O(N) lineal</div>
             </div>
           </div>
           <p class="mt-2 text-[11px] text-slate-400">
@@ -516,7 +508,7 @@
         </div>
 
         <!-- 4. HeapSort in-place -->
-        <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
           <h3 class="text-sm font-bold text-purple-400 mb-1">4. Algoritmo HeapSort In-Place</h3>
           <ol class="list-decimal list-inside space-y-1 text-xs text-slate-300 mt-1">
             <li>Construir una <strong>MaxHeap</strong> con los <i>N</i> elementos usando BuildHeap (O(<i>N</i>)).</li>
@@ -534,8 +526,8 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="px-6 py-3 border-t border-slate-800 bg-slate-950 flex justify-end">
-        <button onclick="closeTheoryModal()" class="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition">
+      <div class="px-6 py-3 border-t border-slate-700 bg-slate-800/90 flex justify-end">
+        <button onclick="closeTheoryModal()" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition">
           Entendido, cerrar
         </button>
       </div>
@@ -588,15 +580,15 @@
       const labelDel = document.getElementById('label-delete-root');
 
       if (type === 'min') {
-        btnMin.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
-        btnMax.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase";
+        btnMin.className = "px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
+        btnMax.className = "px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950/70 border border-blue-800/50 text-blue-400 uppercase";
         badge.innerText = "MinHeap";
         labelDel.innerText = "DeleteMin()";
       } else {
-        btnMax.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow-sm";
-        btnMin.className = "px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 uppercase";
+        btnMax.className = "px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow-sm";
+        btnMin.className = "px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/70 border border-amber-800/50 text-amber-400 uppercase";
         badge.innerText = "MaxHeap";
         labelDel.innerText = "DeleteMax()";
       }
@@ -663,16 +655,15 @@
       return type === 'min' ? parentVal > childVal : parentVal < childVal;
     }
 
-    // Crear un snapshot para registrar un paso
     function createStepSnapshot(state) {
       return {
-        heap: [...state.heap],              // copia 1-indexed
+        heap: [...state.heap],
         heapSize: state.heapSize !== undefined ? state.heapSize : (state.heap.length - 1),
-        highlights: state.highlights || {}, // { [index]: 'candidate' | 'compare' | 'swap' | 'sorted' }
+        highlights: state.highlights || {},
         title: state.title || 'Operación',
         tag: state.tag || 'Paso',
         desc: state.desc || '',
-        partitionIndex: state.partitionIndex || null, // Para HeapSort frontera roja
+        partitionIndex: state.partitionIndex || null,
         sortedResult: state.sortedResult ? [...state.sortedResult] : null
       };
     }
@@ -718,10 +709,9 @@
             highlights: { [curr]: 'candidate', [parentIdx]: 'compare' },
             title: `Filtrado hacia arriba: Comparar nodo ${curr} con padre ${parentIdx}`,
             tag: 'Percolate Up',
-            desc: `Comparamos el nodo actual (valor ${temp} en pos ${curr}) con su padre (valor ${parentVal} en pos ⌊${curr}/2⌋ = ${parentIdx}). Como ${violatesOrder(parentVal, temp, type) ? (type === 'min' ? `${parentVal} > ${temp}` : `${parentVal} < ${temp}`) : 'respeta el orden'}, se viola la propiedad de orden.`
+            desc: `Comparamos el nodo actual (valor ${temp} en pos ${curr}) con su padre (valor ${parentVal} en pos floor(${curr} / 2) = ${parentIdx}). Como ${violatesOrder(parentVal, temp, type) ? (type === 'min' ? `${parentVal} > ${temp}` : `${parentVal} < ${temp}`) : 'respeta el orden'}, se viola la propiedad de orden.`
           }));
 
-          // Intercambio
           heap[curr] = parentVal;
           heap[parentIdx] = temp;
 
@@ -765,10 +755,9 @@
         heap: [...heap],
         title: 'BuildHeap (Floyd) - Inicio',
         tag: 'Inicio O(N)',
-        desc: `Cargamos todos los ${n} elementos desordenados en el árbol binario completo. Las hojas (posiciones desde ⌊${n}/2⌋ + 1 = ${Math.floor(n/2) + 1} hasta ${n}) ya son heaps triviales. Comenzaremos a filtrar hacia abajo desde i = ⌊${n}/2⌋ = ${Math.floor(n/2)} hasta 1.`
+        desc: `Cargamos todos los ${n} elementos desordenados en el árbol binario completo. Las hojas (posiciones desde floor(${n} / 2) + 1 = ${Math.floor(n/2) + 1} hasta ${n}) ya son heaps triviales. Comenzaremos a filtrar hacia abajo desde i = floor(${n} / 2) = ${Math.floor(n/2)} hasta 1.`
       }));
 
-      // Bucle desde floor(n/2) downto 1
       for (let i = Math.floor(n / 2); i >= 1; i--) {
         steps.push(createStepSnapshot({
           heap: [...heap],
@@ -778,12 +767,11 @@
           desc: `Se invoca percolate_down sobre la posición i = ${i} (valor actual: ${heap[i]}). Sus subárboles izquierdo y derecho ya son heaps válidas.`
         }));
 
-        // Percolate Down en posición i
         let p = i;
         let stop_perc = false;
 
         while (2 * p <= n && !stop_perc) {
-          let h_pri = 2 * p; // hijo izquierdo
+          let h_pri = 2 * p;
           const leftChildVal = heap[h_pri];
 
           let compareDesc = `Buscamos el hijo con clave prioritaria entre los hijos de ${p}. Hijo izquierdo en pos ${h_pri} es ${leftChildVal}.`;
@@ -821,7 +809,6 @@
               desc: `El candidato ${candidato} en pos ${p} viola el orden con su hijo ${priVal} en pos ${h_pri} (${type === 'min' ? `${candidato} > ${priVal}` : `${candidato} < ${priVal}`}). Se realiza el intercambio.`
             }));
 
-            // Swap
             heap[p] = priVal;
             heap[h_pri] = candidato;
 
@@ -1051,7 +1038,7 @@
         partitionIndex: n + 1,
         title: `HeapSort: Fase 1 - Construcción paso a paso de la ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} inicial`,
         tag: 'Fase 1: Inicio',
-        desc: `Para ordenar el arreglo de forma ${order === 'asc' ? 'creciente' : 'decreciente'} in-place, comenzamos construyendo una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} con los ${n} elementos. Observaremos uno a uno todos los pasos de filtrado hacia abajo desde la posición ⌊${n}/2⌋ = ${Math.floor(n/2)} hasta 1.`
+        desc: `Para ordenar el arreglo de forma ${order === 'asc' ? 'creciente' : 'decreciente'} in-place, comenzamos construyendo una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} con los ${n} elementos. Observaremos uno a uno todos los pasos de filtrado hacia abajo desde la posición floor(${n} / 2) = ${Math.floor(n/2)} hasta 1.`
       }));
 
       // Bucle BuildHeap paso a paso
@@ -1070,7 +1057,7 @@
         let stop_perc = false;
 
         while (2 * p <= n && !stop_perc) {
-          let h_pri = 2 * p; // hijo izquierdo
+          let h_pri = 2 * p;
           const leftChildVal = heap[h_pri];
 
           let compareDesc = `Buscamos el hijo con clave prioritaria entre los hijos de ${p}. Hijo izquierdo en pos ${h_pri} es ${leftChildVal}.`;
@@ -1112,7 +1099,6 @@
               desc: `El valor ${cand} en pos ${p} viola el orden con su hijo ${pri} en pos ${h_pri} (${heapType === 'max' ? `${cand} < ${pri}` : `${cand} > ${pri}`}). Se realiza el intercambio.`
             }));
 
-            // Swap
             heap[p] = pri;
             heap[h_pri] = cand;
 
@@ -1159,7 +1145,6 @@
         const rootVal = heap[1];
         const lastVal = heap[i];
 
-        // Paso A: Intercambiar la raíz con el último elemento de la heap actual
         steps.push(createStepSnapshot({
           heap: [...heap],
           heapSize: i,
@@ -1173,20 +1158,18 @@
         heap[1] = lastVal;
         heap[i] = rootVal;
 
-        // Paso B: Decrementar el tamaño de la heap (frontera roja divisoria)
         const newHeapSize = i - 1;
 
         steps.push(createStepSnapshot({
           heap: [...heap],
           heapSize: newHeapSize,
-          partitionIndex: i, // Línea divisoria antes de pos i
+          partitionIndex: i,
           highlights: { 1: 'candidate', [i]: 'sorted' },
           title: `Decrementar tamaño de la heap a ${newHeapSize}`,
           tag: 'Frontera Roja',
           desc: `Decrementamos el tamaño activo de la heap a ${newHeapSize}. El elemento ${rootVal} queda a la derecha de la frontera roja (zona ordenada). El valor ${lastVal} en la raíz será filtrado hacia abajo.`
         }));
 
-        // Paso C: Filtrar hacia abajo la nueva raíz
         let p = 1;
         let stop_perc = false;
 
@@ -1576,9 +1559,9 @@
       if (step.sortedResult) {
         resBox.classList.remove('hidden');
         document.getElementById('heapsort-status-tag').innerText = "¡Ordenado!";
-        document.getElementById('heapsort-status-tag').className = "text-[10px] font-mono-code text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800";
+        document.getElementById('heapsort-status-tag').className = "text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800";
         const cont = document.getElementById('heapsort-result-cells');
-        cont.innerHTML = step.sortedResult.map((v, i) => `
+        cont.innerHTML = step.sortedResult.map((v) => `
           <div class="px-2.5 py-1 bg-emerald-950/80 border border-emerald-500/50 rounded text-emerald-300 font-bold">
             ${v}
           </div>
@@ -1586,12 +1569,12 @@
       } else if (step.partitionIndex !== null && step.partitionIndex !== undefined) {
         resBox.classList.remove('hidden');
         document.getElementById('heapsort-status-tag').innerText = "Procesando in-place";
-        document.getElementById('heapsort-status-tag').className = "text-[10px] font-mono-code text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800";
+        document.getElementById('heapsort-status-tag').className = "text-[10px] font-mono text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800";
         const sortedPart = step.heap.slice(step.partitionIndex);
         const cont = document.getElementById('heapsort-result-cells');
         if (sortedPart.length > 0) {
           cont.innerHTML = sortedPart.map(v => `
-            <div class="px-2 py-0.5 bg-slate-800 border border-indigo-500/40 rounded text-indigo-300 font-semibold">
+            <div class="px-2 py-0.5 bg-slate-700 border border-indigo-500/40 rounded text-indigo-200 font-semibold">
               ${v}
             </div>
           `).join('');
@@ -1621,39 +1604,38 @@
         const highlight = step.highlights[i];
         const isSortedZone = step.partitionIndex && i >= step.partitionIndex;
 
-        let cellBorder = 'border-slate-700 bg-slate-950 text-slate-100';
+        let cellBorder = 'border-slate-700 bg-slate-900 text-slate-100';
         let badgeBg = 'text-slate-400';
 
         if (highlight === 'candidate') {
-          cellBorder = 'border-amber-400 bg-amber-950/70 text-amber-200 ring-2 ring-amber-400/50 shadow-lg';
+          cellBorder = 'border-amber-400 bg-amber-950/70 text-amber-200 ring-2 ring-amber-400/50 shadow-md';
           badgeBg = 'text-amber-300 font-bold';
         } else if (highlight === 'compare') {
           cellBorder = 'border-blue-400 bg-blue-950/70 text-blue-200 ring-2 ring-blue-400/50';
           badgeBg = 'text-blue-300 font-bold';
         } else if (highlight === 'swap') {
-          cellBorder = 'border-emerald-400 bg-emerald-950/70 text-emerald-200 ring-2 ring-emerald-400/50';
+          cellBorder = 'border-emerald-500 bg-emerald-950/70 text-emerald-200 ring-2 ring-emerald-500/50';
           badgeBg = 'text-emerald-300 font-bold';
         } else if (isSortedZone || highlight === 'sorted') {
-          cellBorder = 'border-indigo-800 bg-indigo-950/40 text-indigo-300';
+          cellBorder = 'border-indigo-700 bg-indigo-950/40 text-indigo-300';
           badgeBg = 'text-indigo-400';
         }
 
-        // Si es la posición donde está la partición de HeapSort
         const isPartitionBorder = (step.partitionIndex && i === step.partitionIndex);
 
         if (isPartitionBorder) {
           html += `
             <div class="flex flex-col items-center justify-center px-1">
-              <div class="w-1.5 h-16 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.9)]" title="Frontera de HeapSort: Límite de la heap"></div>
-              <span class="text-[9px] font-mono-code text-red-400 font-bold mt-1">Límite</span>
+              <div class="w-1.5 h-16 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.8)]" title="Frontera de HeapSort: Límite de la heap"></div>
+              <span class="text-[9px] font-mono text-rose-400 font-bold mt-1">Límite</span>
             </div>
           `;
         }
 
         html += `
           <div class="flex flex-col items-center gap-1">
-            <span class="text-[10px] font-mono-code ${badgeBg}">[${i}]</span>
-            <div class="w-11 h-11 flex items-center justify-center rounded-xl border-2 font-mono-code font-bold text-sm shadow-md ${cellBorder}">
+            <span class="text-[10px] font-mono ${badgeBg}">[${i}]</span>
+            <div class="w-11 h-11 flex items-center justify-center rounded-lg border-2 font-mono font-bold text-sm shadow-sm ${cellBorder}">
               ${val}
             </div>
             ${i === 1 ? '<span class="text-[9px] font-bold text-blue-400 uppercase">Raíz</span>' : '<span class="text-[9px] opacity-0">-</span>'}
@@ -1665,7 +1647,7 @@
     }
 
     // ==========================================
-    // RENDERIZADO DEL ÁRBOL COMPLETO EN SVG (SIN MOVIMIENTO DE CANDIDATO)
+    // RENDERIZADO DEL ÁRBOL COMPLETO EN SVG (ESTILO IDÉNTICO A INDEX.HTML)
     // ==========================================
 
     function renderSVGTree(step) {
@@ -1686,13 +1668,11 @@
       }
       emptyMsg.classList.add('hidden');
 
-      // Calcular posiciones de cada nodo
       const maxLevel = Math.floor(Math.log2(totalNodes));
       const width = 800;
       const height = Math.max(380, (maxLevel + 1) * 85 + 40);
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-      // Posiciones de los nodos calculadas por nivel
       const coords = {};
       const verticalGap = (height - 80) / Math.max(1, maxLevel);
 
@@ -1708,7 +1688,7 @@
         coords[i] = { x, y };
       }
 
-      // 1. Dibujar aristas (líneas)
+      // 1. Dibujar aristas
       for (let i = 1; i <= totalNodes; i++) {
         const leftChild = 2 * i;
         const rightChild = 2 * i + 1;
@@ -1723,7 +1703,7 @@
         }
       }
 
-      // 2. Dibujar nodos (estáticos sin animación de escala o movimiento)
+      // 2. Dibujar nodos
       for (let i = 1; i <= totalNodes; i++) {
         const val = heap[i];
         const pos = coords[i];
@@ -1740,16 +1720,16 @@
       line.setAttribute('y1', from.y);
       line.setAttribute('x2', to.x);
       line.setAttribute('y2', to.y);
-      line.setAttribute('class', 'tree-edge');
+      line.setAttribute('class', 'tree-link');
 
       const hParent = step.highlights[parentIdx];
       const hChild = step.highlights[childIdx];
       if ((hParent === 'candidate' && hChild === 'compare') || (hParent === 'compare' && hChild === 'candidate')) {
         line.setAttribute('stroke', '#f59e0b');
-        line.setAttribute('stroke-width', '3.5');
+        line.setAttribute('stroke-width', '3');
         line.setAttribute('stroke-dasharray', '5,5');
       } else {
-        line.setAttribute('stroke', '#334155');
+        line.setAttribute('stroke', '#94a3b8');
         line.setAttribute('stroke-width', '2');
       }
 
@@ -1758,35 +1738,34 @@
 
     function createSVGNode(x, y, value, index, highlight) {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', 'node-group'); // Sin animación de movimiento ni escala
+      g.setAttribute('class', 'node-group tree-node');
 
-      // Círculo
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', x);
       circle.setAttribute('cy', y);
       circle.setAttribute('r', '22');
       circle.setAttribute('class', 'node-circle');
 
-      let fillColor = '#0f172a';
+      let fillColor = '#1e293b';
       let strokeColor = '#3b82f6';
       let strokeWidth = '2.5';
       let textColor = '#ffffff';
 
       if (highlight === 'candidate') {
         fillColor = '#78350f';
-        strokeColor = '#fbbf24';
+        strokeColor = '#f59e0b';
         strokeWidth = '3.5';
-        circle.setAttribute('filter', 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.75))');
+        circle.setAttribute('filter', 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.75))');
       } else if (highlight === 'compare') {
         fillColor = '#1e3a8a';
         strokeColor = '#60a5fa';
         strokeWidth = '3.5';
-        circle.setAttribute('filter', 'drop-shadow(0 0 8px rgba(96, 165, 250, 0.7))');
+        circle.setAttribute('filter', 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.7))');
       } else if (highlight === 'swap') {
         fillColor = '#064e3b';
-        strokeColor = '#34d399';
+        strokeColor = '#10b981';
         strokeWidth = '3.5';
-        circle.setAttribute('filter', 'drop-shadow(0 0 8px rgba(52, 211, 153, 0.8))');
+        circle.setAttribute('filter', 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.75))');
       } else if (highlight === 'sorted') {
         fillColor = '#1e1b4b';
         strokeColor = '#818cf8';
@@ -1803,7 +1782,7 @@
       textVal.setAttribute('y', y + 5);
       textVal.setAttribute('text-anchor', 'middle');
       textVal.setAttribute('fill', textColor);
-      textVal.setAttribute('font-family', 'JetBrains Mono, monospace');
+      textVal.setAttribute('font-family', "Consolas, 'Fira Code', monospace");
       textVal.setAttribute('font-size', '14');
       textVal.setAttribute('font-weight', 'bold');
       textVal.textContent = value;
@@ -1814,7 +1793,7 @@
       textIdx.setAttribute('y', y - 27);
       textIdx.setAttribute('text-anchor', 'middle');
       textIdx.setAttribute('fill', '#94a3b8');
-      textIdx.setAttribute('font-family', 'JetBrains Mono, monospace');
+      textIdx.setAttribute('font-family', "Consolas, 'Fira Code', monospace");
       textIdx.setAttribute('font-size', '11');
       textIdx.setAttribute('font-weight', '600');
       textIdx.textContent = `i=${index}`;
