@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador Interactivo de Colas de Prioridad y Heap Binaria</title>
+  <title>Visualizador de Heap Binaria</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -19,17 +19,17 @@
       font-family: 'JetBrains Mono', monospace;
     }
     
-    /* Animaciones suaves para nodos y conexiones */
+    /* El candidato NO tiene animación de movimiento ni escala */
     .node-group {
-      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      /* Estático sin traslación */
     }
     
     .node-circle {
-      transition: fill 0.3s ease, stroke 0.3s ease, filter 0.3s ease, r 0.25s ease;
+      transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
     }
     
     .tree-edge {
-      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+      transition: stroke 0.2s ease, stroke-width 0.2s ease;
     }
     
     /* Scrollbar personalizada */
@@ -47,23 +47,6 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
-
-    /* Resaltados de código */
-    .code-line.active {
-      background: rgba(59, 130, 246, 0.25);
-      border-left: 3px solid #60a5fa;
-      color: #93c5fd;
-    }
-
-    /* Pulso animado para nodos activos */
-    @keyframes nodePulse {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6)); }
-      50% { transform: scale(1.08); filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.9)); }
-    }
-    .node-highlight-pulse {
-      animation: nodePulse 1.2s infinite ease-in-out;
-      transform-origin: center;
-    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
@@ -77,8 +60,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-2">
-            Colas de Prioridad & Heap Binaria
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">AED Cátedra</span>
+            Visualizador de Heap Binaria
           </h1>
         </div>
         <p class="text-xs text-slate-400 hidden sm:block">Representación secuencial en arreglo, Filtrados (Percolate Up / Down), BuildHeap y HeapSort</p>
@@ -87,12 +69,6 @@
 
     <!-- Acciones rápidas de cabecera -->
     <div class="flex items-center gap-2">
-      <!-- Enlace a Árbol General -->
-      <a href="index.html" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
-        <i data-lucide="network" class="w-4 h-4 text-blue-400"></i>
-        <span class="hidden md:inline">Árbol General</span>
-      </a>
-
       <!-- Selector de Modo Heap -->
       <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-semibold">
         <button id="btn-mode-min" onclick="setHeapType('min')" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
@@ -111,28 +87,28 @@
         <span class="hidden md:inline">Resumen Teórico</span>
       </button>
 
-      <!-- Botón de Ejemplos de Cátedra -->
+      <!-- Botón de Ejemplos Predefinidos -->
       <div class="relative">
         <button onclick="toggleExamplesMenu()" id="btn-examples" class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
           <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
-          <span class="hidden md:inline">Ejemplos de Filminas</span>
+          <span class="hidden md:inline">Ejemplos Predefinidos</span>
           <i data-lucide="chevron-down" class="w-3 h-3"></i>
         </button>
         <div id="examples-menu" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1">
           <button onclick="loadSlideExample(1)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">Diapo 4-7: Inserción 1 a 1 (MinHeap)</span>
+            <span class="font-bold text-slate-200">Inserción 1 a 1 (MinHeap)</span>
             <span class="text-slate-400 font-mono-code text-[11px]">[8, 12, 9, 7, 10, 21, 6, 4]</span>
           </button>
           <button onclick="loadSlideExample(2)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">Diapo 9-15: BuildHeap O(N) (MinHeap)</span>
+            <span class="font-bold text-slate-200">BuildHeap O(N) (MinHeap)</span>
             <span class="text-slate-400 font-mono-code text-[11px]">[5, 8, 12, 9, 7, 10, 21, 6, 14, 4]</span>
           </button>
           <button onclick="loadSlideExample(3)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">Diapo 22-34: HeapSort In-Place (MaxHeap)</span>
+            <span class="font-bold text-slate-200">HeapSort In-Place (MaxHeap)</span>
             <span class="text-slate-400 font-mono-code text-[11px]">[9, 50, 18, 30, 22, 12, 15, 25]</span>
           </button>
           <button onclick="loadSlideExample(4)" class="w-full text-left p-2 rounded-lg hover:bg-slate-800 transition flex flex-col">
-            <span class="font-bold text-slate-200">Diapo 20-21: HeapSort 2 arreglos (MinHeap)</span>
+            <span class="font-bold text-slate-200">HeapSort con 2 arreglos (MinHeap)</span>
             <span class="text-slate-400 font-mono-code text-[11px]">[50, 30, 18, 25, 22, 12]</span>
           </button>
         </div>
@@ -140,7 +116,7 @@
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL DE 3 PANELES -->
+  <!-- CONTENEDOR PRINCIPAL -->
   <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 max-w-[1920px] mx-auto w-full">
 
     <!-- PANEL LATERAL IZQUIERDO: CONTROLES Y OPERACIONES (col-span-3) -->
@@ -159,7 +135,7 @@
         <!-- Entrada de Datos -->
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1.5 flex justify-between">
-            <span>Datos iniciales (separados por coma o espacio):</span>
+            <span>Datos iniciales:</span>
             <button onclick="generateRandomData()" class="text-blue-400 hover:text-blue-300 text-[11px] font-semibold flex items-center gap-1">
               <i data-lucide="dice-5" class="w-3 h-3"></i> Aleatorios
             </button>
@@ -184,7 +160,7 @@
               <span class="text-xs font-bold text-blue-300 group-hover:text-blue-200 transition">BuildHeap (Floyd)</span>
               <span class="text-[10px] font-mono-code px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold">O(N)</span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-tight">Filtrado abajo desde ⌊N/2⌋ a 1 (Lineal).</p>
+            <p class="text-[11px] text-slate-400 leading-tight">Filtrado abajo desde ⌊N/2⌋ hasta 1 (Lineal).</p>
           </button>
         </div>
       </div>
@@ -217,10 +193,10 @@
           </button>
         </div>
 
-        <!-- Operaciones Avanzadas (DecreaseKey / IncreaseKey) -->
+        <!-- Operaciones Avanzadas (DecreaseKey / IncreaseKey / DeleteKey) -->
         <div class="border-t border-slate-800/80 pt-2.5 flex flex-col gap-2">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Modificar Clave (Diapo 26)</span>
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Modificar Clave</span>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <input id="input-key-pos" type="number" min="1" placeholder="Posición i" value="1"
@@ -256,7 +232,7 @@
         </div>
 
         <p class="text-[11px] text-slate-300 leading-relaxed">
-          Ejecuta la ordenación in-place recomendada por la cátedra (diapos 22-34): construye una MaxHeap, intercambia la raíz con la última posición, reduce el tamaño y filtra hacia abajo.
+          Ordenación in-place completa: muestra paso a paso la construcción de la heap inicial (Fase 1) y luego los intercambios, reducción del tamaño y filtrados hacia abajo (Fase 2).
         </p>
 
         <div class="grid grid-cols-2 gap-2">
@@ -335,12 +311,12 @@
             <span id="narrative-tag" class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Listo</span>
           </div>
           <p id="narrative-desc" class="text-xs text-slate-300 leading-relaxed font-sans">
-            Elige un conjunto de datos o carga un ejemplo de las diapositivas para iniciar la construcción paso a paso. Observarás cómo cada filtrado hacia arriba (Percolate Up) o hacia abajo (Percolate Down) mantiene intactas las propiedades de estructura y de orden de la Heap Binaria.
+            Elige un conjunto de datos o carga un ejemplo para iniciar la construcción paso a paso. Cada filtrado hacia arriba (Percolate Up) o hacia abajo (Percolate Down) mantiene intactas las propiedades de estructura y de orden de la Heap Binaria.
           </p>
         </div>
       </div>
 
-      <!-- VISUALIZACIÓN DUAL: ÁRBOL COMPLETO (SVG) Y VECTOR CON ÍNDICES 1 A N -->
+      <!-- VISUALIZACIÓN DUAL: ÁRBOL COMPLETO (SVG) Y VECTOR CON PANEL DE ESTADO -->
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1">
         
         <!-- SUBAREA IZQUIERDA: ÁRBOL BINARIO SVG (col-span-8) -->
@@ -376,7 +352,7 @@
 
         </div>
 
-        <!-- SUBAREA DERECHA: REPRESENTACIÓN EN ARREGLO Y PSEUDOCÓDIGO (col-span-4) -->
+        <!-- SUBAREA DERECHA: ALMACENAMIENTO EN ARREGLO Y ESTADO (col-span-4) -->
         <div class="xl:col-span-4 flex flex-col gap-4">
 
           <!-- VECTOR / ARREGLO CON ÍNDICES 1 A N -->
@@ -386,11 +362,11 @@
                 <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-400"></i>
                 <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Almacenamiento en Arreglo</h3>
               </div>
-              <span class="text-[10px] font-mono-code text-slate-400">Base 1 (Diapo 11)</span>
+              <span class="text-[10px] font-mono-code text-slate-400">Base 1</span>
             </div>
 
             <p class="text-[11px] text-slate-400 mb-2">
-              Hijo izq: <span class="font-mono-code text-blue-400">2*i</span> | Hijo der: <span class="font-mono-code text-blue-400">2*i+1</span> | Padre: <span class="font-mono-code text-blue-400">⌊i/2⌋</span>
+              Hijo izq: <span class="font-mono-code text-blue-400">2·i</span> | Hijo der: <span class="font-mono-code text-blue-400">2·i+1</span> | Padre: <span class="font-mono-code text-blue-400">⌊i/2⌋</span>
             </p>
 
             <!-- Contenedor con scroll para celdas del vector -->
@@ -399,31 +375,55 @@
                 <!-- Se inyecta dinámicamente con JS -->
               </div>
             </div>
+          </div>
 
-            <!-- Vector resultante en HeapSort (si aplica) -->
-            <div id="heapsort-result-box" class="mt-3 pt-3 border-t border-slate-800/80 hidden">
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[11px] font-bold text-indigo-300 uppercase">Vector Ordenado Final:</span>
-                <span id="heapsort-status-tag" class="text-[10px] font-mono-code text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">En proceso</span>
+          <!-- PANEL DE ESTADO Y MÉTRICAS DE LA HEAP -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col gap-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div class="flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Estado y Propiedades</h3>
               </div>
-              <div id="heapsort-result-cells" class="flex gap-1 overflow-x-auto p-1 font-mono-code text-xs"></div>
+              <span id="metric-heap-type" class="text-[10px] font-mono-code font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase">MinHeap</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Elementos activos (n)</span>
+                <span id="metric-n" class="text-base font-bold font-mono-code text-white">0</span>
+              </div>
+              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Altura (h = ⌊log₂ n⌋)</span>
+                <span id="metric-h" class="text-base font-bold font-mono-code text-amber-300">0</span>
+              </div>
+              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Elemento Raíz [1]</span>
+                <span id="metric-root" class="text-base font-bold font-mono-code text-emerald-300">-</span>
+              </div>
+              <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Última posición [n]</span>
+                <span id="metric-last" class="text-base font-bold font-mono-code text-indigo-300">-</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/60 text-[11px] text-slate-400 leading-relaxed font-mono-code">
+              <div>• Raíz en posición 1</div>
+              <div>• Hijo Izquierdo = 2 · i</div>
+              <div>• Hijo Derecho = 2 · i + 1</div>
+              <div>• Padre = ⌊i / 2⌋</div>
             </div>
           </div>
 
-          <!-- PSEUDOCÓDIGO VINCULADO AL PASO (DIAPOSITIVAS DE LA CÁTEDRA) -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex-1 flex flex-col">
+          <!-- RESULTADO DE HEAPSORT -->
+          <div id="heapsort-result-box" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col hidden">
             <div class="flex items-center justify-between mb-2 border-b border-slate-800/80 pb-2">
               <div class="flex items-center gap-2">
-                <i data-lucide="code" class="w-4 h-4 text-amber-400"></i>
-                <h3 id="code-panel-title" class="text-xs font-bold text-slate-300 uppercase tracking-wider">Pseudocódigo de Cátedra</h3>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-[11px] font-bold text-indigo-300 uppercase">Vector Ordenado Final:</span>
               </div>
-              <span id="code-routine-name" class="text-[10px] font-mono-code text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">percolate_down</span>
+              <span id="heapsort-status-tag" class="text-[10px] font-mono-code text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">En proceso</span>
             </div>
-
-            <!-- Código con líneas dinámicas -->
-            <div id="code-lines-container" class="flex-1 bg-slate-950 rounded-xl p-3 font-mono-code text-[11px] leading-relaxed text-slate-400 overflow-y-auto border border-slate-800/60 max-h-[220px]">
-              <!-- Inyectado por JS -->
-            </div>
+            <div id="heapsort-result-cells" class="flex gap-1 overflow-x-auto p-1 font-mono-code text-xs"></div>
           </div>
 
         </div>
@@ -434,7 +434,7 @@
 
   </div>
 
-  <!-- MODAL DE TEORÍA Y FUNDAMENTOS DE LA CÁTEDRA -->
+  <!-- MODAL DE TEORÍA Y FUNDAMENTOS -->
   <div id="theory-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
       
@@ -446,7 +446,7 @@
           </div>
           <div>
             <h2 class="text-base font-bold text-white">Fundamentos Teóricos: Colas de Prioridad & Heap Binaria</h2>
-            <p class="text-xs text-slate-400">Cátedra Algoritmos y Estructuras de Datos - Prof. Schiavoni & Mostaccio</p>
+            <p class="text-xs text-slate-400">Estructuras de Datos y Algoritmos: Árbol Binario Completo y Colas de Prioridad</p>
           </div>
         </div>
         <button onclick="closeTheoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
@@ -467,7 +467,7 @@
             <code class="text-blue-300">Insert(x)</code> (agrega un elemento) y <code class="text-blue-300">DeleteMin()</code> o <code class="text-blue-300">DeleteMax()</code> (extrae y elimina el elemento de mayor prioridad).
           </p>
           <p class="mt-2 text-slate-400">
-            Una <strong>Heap Binaria</strong> implementa esta estructura sin utilizar punteros dinámicos, garantizando ambas operaciones en tiempo <strong class="text-white">O(log N)</strong> en el peor caso.
+            Una <strong>Heap Binaria</strong> implementa esta estructura sin utilizar punteros dinámicos, garantizando ambas operaciones en tiempo <strong class="text-white">O(log <i>N</i>)</strong> en el peor caso.
           </p>
         </div>
 
@@ -476,14 +476,13 @@
           <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
             <h4 class="font-bold text-amber-400 mb-1">Propiedad Estructural</h4>
             <p class="text-slate-300 text-xs leading-relaxed">
-              Es un <strong>árbol binario completo</strong>: lleno hasta el nivel $h-1$ y en el nivel $h$ los nodos se ubican consecutivamente de izquierda a derecha sin huecos intermedios.
-              Por lo tanto, la altura es exactamente $h = \lfloor \log_2 n \rfloor = O(\log n)$.
+              Es un <strong>árbol binario completo</strong>: lleno hasta el nivel <i>h</i> − 1 y en el nivel <i>h</i> los nodos se ubican consecutivamente de izquierda a derecha sin huecos intermedios. Por lo tanto, la altura es exactamente <i>h</i> = ⌊log₂ <i>n</i>⌋ = O(log <i>n</i>).
             </p>
             <div class="mt-2 bg-slate-900 p-2 rounded-lg font-mono-code text-[11px] text-blue-300">
               Raíz = 1<br>
-              Hijo Izquierdo = 2 * i<br>
-              Hijo Derecho = 2 * i + 1<br>
-              Padre = ⌊ i / 2 ⌋
+              Hijo Izquierdo = 2 · i<br>
+              Hijo Derecho = 2 · i + 1<br>
+              Padre = ⌊i / 2⌋
             </div>
           </div>
 
@@ -502,17 +501,17 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 text-xs">
             <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800">
               <span class="font-bold text-amber-300">Inserción uno a uno:</span>
-              <p class="mt-1 text-slate-400">Inserta cada uno de los $N$ elementos secuencialmente aplicando <em>Percolate Up</em>.</p>
-              <div class="mt-2 text-amber-400 font-mono-code font-bold">Costo: O(N log N)</div>
+              <p class="mt-1 text-slate-400">Inserta cada uno de los <i>N</i> elementos secuencialmente aplicando <em>Percolate Up</em>.</p>
+              <div class="mt-2 text-amber-400 font-mono-code font-bold">Costo: O(<i>N</i> log <i>N</i>)</div>
             </div>
             <div class="p-3 bg-slate-900/80 rounded-lg border border-blue-900/40">
               <span class="font-bold text-blue-300">Algoritmo BuildHeap (Floyd):</span>
-              <p class="mt-1 text-slate-400">Coloca todos los elementos en el arreglo y filtra hacia abajo desde la posición $\lfloor N/2 \rfloor$ hasta $1$.</p>
-              <div class="mt-2 text-emerald-400 font-mono-code font-bold">Costo: O(N) lineal!</div>
+              <p class="mt-1 text-slate-400">Coloca todos los elementos en el arreglo y filtra hacia abajo desde la posición ⌊<i>N</i> / 2⌋ hasta 1.</p>
+              <div class="mt-2 text-emerald-400 font-mono-code font-bold">Costo: O(<i>N</i>) lineal</div>
             </div>
           </div>
           <p class="mt-2 text-[11px] text-slate-400">
-            Demostración de cátedra: $\sum_{i=0}^h 2^i(h-i) = 2^{h+1} - 1 - (h+1) = O(N)$.
+            Demostración matemática: Σ<sub><i>i</i>=0</sub><sup><i>h</i></sup> 2<sup><i>i</i></sup>(<i>h</i> − <i>i</i>) = 2<sup><i>h</i>+1</sup> − 1 − (<i>h</i> + 1) = O(<i>N</i>).
           </p>
         </div>
 
@@ -520,15 +519,15 @@
         <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
           <h3 class="text-sm font-bold text-purple-400 mb-1">4. Algoritmo HeapSort In-Place</h3>
           <ol class="list-decimal list-inside space-y-1 text-xs text-slate-300 mt-1">
-            <li>Construir una <strong>MaxHeap</strong> con los $N$ elementos usando BuildHeap ($O(N)$).</li>
-            <li>Para $i = N$ bajando hasta 2:
+            <li>Construir una <strong>MaxHeap</strong> con los <i>N</i> elementos usando BuildHeap (O(<i>N</i>)).</li>
+            <li>Para <i>i</i> = <i>N</i> bajando hasta 2:
               <ul class="list-disc list-inside ml-4 text-slate-400">
-                <li>Intercambiar <code class="text-purple-300">dato[1]</code> con <code class="text-purple-300">dato[i]</code> (el máximo actual se coloca al final).</li>
-                <li>Decrementar el tamaño de la heap a $i-1$ (se traza la línea divisoria roja).</li>
+                <li>Intercambiar <code class="text-purple-300">dato[1]</code> con <code class="text-purple-300">dato[<i>i</i>]</code> (el máximo actual se coloca al final).</li>
+                <li>Decrementar el tamaño de la heap a <i>i</i> − 1 (se traza la línea divisoria roja).</li>
                 <li>Filtrar hacia abajo <code class="text-purple-300">percolate_down(1)</code> para restaurar la MaxHeap.</li>
               </ul>
             </li>
-            <li>El arreglo queda ordenado de forma creciente in-place sin requerir doble memoria en $O(N \log N)$.</li>
+            <li>El arreglo queda ordenado de forma creciente in-place sin requerir doble memoria en O(<i>N</i> log <i>N</i>).</li>
           </ol>
         </div>
 
@@ -557,81 +556,12 @@
     let playTimer = null;
     let playbackInterval = 1200; // ms
 
-    // Pseudocódigos según las diapositivas
-    const PSEUDOCODES = {
-      percolate_up: [
-        "percolate_up(Heap h, Integer i) {",
-        "  temp = h.dato[i];",
-        "  while (i/2 > 0 && h.dato[i/2] > temp) {",
-        "    h.dato[i] = h.dato[i/2];",
-        "    i = i/2;",
-        "  }",
-        "  h.dato[i] = temp; // ubicación correcta",
-        "}"
-      ],
-      percolate_up_max: [
-        "percolate_up(Heap h, Integer i) {",
-        "  temp = h.dato[i];",
-        "  while (i/2 > 0 && h.dato[i/2] < temp) {",
-        "    h.dato[i] = h.dato[i/2];",
-        "    i = i/2;",
-        "  }",
-        "  h.dato[i] = temp; // ubicación correcta",
-        "}"
-      ],
-      percolate_down: [
-        "percolate_down(Heap h, int p) {",
-        "  candidato := h.dato[p]; stop_perc := false;",
-        "  while (2*p <= h.tamaño && !stop_perc) {",
-        "    h_min := 2*p;",
-        "    if (h_min <> h.tamaño && h.dato[h_min+1] < h.dato[h_min]) h_min++;",
-        "    if (candidato > h.dato[h_min]) {",
-        "      h.dato[p] := h.dato[h_min]; p := h_min;",
-        "    } else stop_perc := true;",
-        "  }",
-        "  h.dato[p] := candidato;",
-        "}"
-      ],
-      percolate_down_max: [
-        "percolate_down(Heap h, int p) {",
-        "  candidato := h.dato[p]; stop_perc := false;",
-        "  while (2*p <= h.tamaño && !stop_perc) {",
-        "    h_max := 2*p;",
-        "    if (h_max <> h.tamaño && h.dato[h_max+1] > h.dato[h_max]) h_max++;",
-        "    if (candidato < h.dato[h_max]) {",
-        "      h.dato[p] := h.dato[h_max]; p := h_max;",
-        "    } else stop_perc := true;",
-        "  }",
-        "  h.dato[p] := candidato;",
-        "}"
-      ],
-      build_heap: [
-        "BuildHeap(Heap h, int n) {",
-        "  // Cargar elementos desordenados en árbol binario completo",
-        "  // Los nodos desde ⌊n/2⌋+1 hasta n son hojas",
-        "  for (i = ⌊n/2⌋ downto 1) {",
-        "    percolate_down(h, i);",
-        "  }",
-        "}"
-      ],
-      heapsort: [
-        "HeapSort(Vector A, int n) {",
-        "  BuildHeap(A, n); // MaxHeap en O(N)",
-        "  for (i = n downto 2) {",
-        "    swap(A[1], A[i]); // Mayor elemento al final",
-        "    tamaño_heap := tamaño_heap - 1; // Frontera roja",
-        "    percolate_down(A, 1);",
-        "  }",
-        "}"
-      ]
-    };
-
     // ==========================================
     // INICIALIZACIÓN
     // ==========================================
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      // Iniciar con el ejemplo clásico de la diapositiva 4 (MinHeap: 8, 12, 9, 7, 10, 21, 6, 4)
+      // Iniciar con el ejemplo de inserción 1 a 1 (MinHeap: 8, 12, 9, 7, 10, 21, 6, 4)
       loadSlideExample(1);
     });
 
@@ -691,28 +621,24 @@
       document.getElementById('input-dataset').value = vals.join(', ');
     }
 
-    // Cargar ejemplos directos de las diapositivas
+    // Cargar ejemplos predefinidos
     function loadSlideExample(num) {
       const menu = document.getElementById('examples-menu');
       if (menu) menu.classList.add('hidden');
 
       if (num === 1) {
-        // Diapo 4-7: MinHeap insertando uno a uno [8, 12, 9, 7, 10, 21, 6, 4]
         setHeapType('min');
         document.getElementById('input-dataset').value = "8, 12, 9, 7, 10, 21, 6, 4";
         buildHeapAction('insert-each');
       } else if (num === 2) {
-        // Diapo 9-15: BuildHeap MinHeap [5, 8, 12, 9, 7, 10, 21, 6, 14, 4]
         setHeapType('min');
         document.getElementById('input-dataset').value = "5, 8, 12, 9, 7, 10, 21, 6, 14, 4";
         buildHeapAction('build-heap');
       } else if (num === 3) {
-        // Diapo 22-34: HeapSort In-Place con MaxHeap [9, 50, 18, 30, 22, 12, 15, 25]
         setHeapType('max');
         document.getElementById('input-dataset').value = "9, 50, 18, 30, 22, 12, 15, 25";
         runHeapSortAction('asc');
       } else if (num === 4) {
-        // Diapo 20-21: HeapSort con 2 arreglos y MinHeap [50, 30, 18, 25, 22, 12]
         setHeapType('min');
         document.getElementById('input-dataset').value = "50, 30, 18, 25, 22, 12";
         buildHeapAction('build-heap');
@@ -729,16 +655,11 @@
     // GENERADOR DE PASOS Y COMPARADORES
     // ==========================================
     
-    // Comparador según tipo de heap:
-    // En MinHeap: a tiene mayor prioridad si a < b
-    // En MaxHeap: a tiene mayor prioridad si a > b
     function hasHigherPriority(a, b, type = currentHeapType) {
       return type === 'min' ? a < b : a > b;
     }
 
     function violatesOrder(parentVal, childVal, type = currentHeapType) {
-      // En MinHeap, si parentVal > childVal viola el orden
-      // En MaxHeap, si parentVal < childVal viola el orden
       return type === 'min' ? parentVal > childVal : parentVal < childVal;
     }
 
@@ -747,12 +668,10 @@
       return {
         heap: [...state.heap],              // copia 1-indexed
         heapSize: state.heapSize !== undefined ? state.heapSize : (state.heap.length - 1),
-        highlights: state.highlights || {}, // { [index]: 'candidate' | 'compare' | 'swap' | 'sorted' | 'parent' }
+        highlights: state.highlights || {}, // { [index]: 'candidate' | 'compare' | 'swap' | 'sorted' }
         title: state.title || 'Operación',
         tag: state.tag || 'Paso',
         desc: state.desc || '',
-        codeRoutine: state.codeRoutine || 'percolate_down',
-        codeLine: state.codeLine !== undefined ? state.codeLine : -1,
         partitionIndex: state.partitionIndex || null, // Para HeapSort frontera roja
         sortedResult: state.sortedResult ? [...state.sortedResult] : null
       };
@@ -766,15 +685,12 @@
     function generateInsertEachSteps(elements, type) {
       const steps = [];
       const heap = [null]; // 1-indexed
-      const routine = type === 'min' ? 'percolate_up' : 'percolate_up_max';
 
       steps.push(createStepSnapshot({
         heap: [...heap],
         title: 'Inicio: Construcción 1 a 1',
         tag: 'Inicio',
-        desc: `Iniciamos con una Heap vacía. Se insertarán ${elements.length} elementos de a uno en total. Cada inserción colocará el elemento al final y filtrará hacia arriba (Percolate Up). Costo total: O(N log N).`,
-        codeRoutine: routine,
-        codeLine: 0
+        desc: `Iniciamos con una Heap vacía. Se insertarán ${elements.length} elementos de a uno en total. Cada inserción colocará el elemento al final y filtrará hacia arriba (Percolate Up). Costo total: O(N log N).`
       }));
 
       for (let k = 0; k < elements.length; k++) {
@@ -787,9 +703,7 @@
           highlights: { [curr]: 'candidate' },
           title: `Insertar elemento: ${x}`,
           tag: `Insert(${x})`,
-          desc: `Paso 1: Colocamos ${x} como último ítem de la heap en la posición ${curr}. Se mantiene la propiedad estructural de árbol binario completo.`,
-          codeRoutine: routine,
-          codeLine: 1
+          desc: `Paso 1: Colocamos ${x} como último ítem de la heap en la posición ${curr}. Se mantiene la propiedad estructural de árbol binario completo.`
         }));
 
         // Filtrado hacia arriba (Percolate Up)
@@ -804,12 +718,10 @@
             highlights: { [curr]: 'candidate', [parentIdx]: 'compare' },
             title: `Filtrado hacia arriba: Comparar nodo ${curr} con padre ${parentIdx}`,
             tag: 'Percolate Up',
-            desc: `Comparamos el nodo actual (valor ${temp} en pos ${curr}) con su padre (valor ${parentVal} en pos ⌊${curr}/2⌋ = ${parentIdx}). Como ${violatesOrder(parentVal, temp, type) ? (type === 'min' ? `${parentVal} > ${temp}` : `${parentVal} < ${temp}`) : 'respeta el orden'}, se viola la propiedad de orden.`,
-            codeRoutine: routine,
-            codeLine: 2
+            desc: `Comparamos el nodo actual (valor ${temp} en pos ${curr}) con su padre (valor ${parentVal} en pos ⌊${curr}/2⌋ = ${parentIdx}). Como ${violatesOrder(parentVal, temp, type) ? (type === 'min' ? `${parentVal} > ${temp}` : `${parentVal} < ${temp}`) : 'respeta el orden'}, se viola la propiedad de orden.`
           }));
 
-          // Intercambio / desplazamiento
+          // Intercambio
           heap[curr] = parentVal;
           heap[parentIdx] = temp;
 
@@ -818,9 +730,7 @@
             highlights: { [parentIdx]: 'candidate', [curr]: 'swap' },
             title: `Intercambiar ${temp} con padre ${parentVal}`,
             tag: 'Intercambio',
-            desc: `El valor ${temp} sube a la posición ${parentIdx} y el valor ${parentVal} baja a la posición ${curr}.`,
-            codeRoutine: routine,
-            codeLine: 3
+            desc: `El valor ${temp} sube a la posición ${parentIdx} y el valor ${parentVal} baja a la posición ${curr}.`
           }));
 
           curr = parentIdx;
@@ -831,9 +741,7 @@
           highlights: { [curr]: 'candidate' },
           title: `Elemento ${x} ubicado correctamente`,
           tag: 'Orden OK',
-          desc: `El elemento ${x} llegó a la posición ${curr} donde ya respeta la propiedad de orden ${type === 'min' ? 'MinHeap' : 'MaxHeap'} con su padre (o es la raíz).`,
-          codeRoutine: routine,
-          codeLine: 6
+          desc: `El elemento ${x} llegó a la posición ${curr} donde ya respeta la propiedad de orden ${type === 'min' ? 'MinHeap' : 'MaxHeap'} con su padre (o es la raíz).`
         }));
       }
 
@@ -841,9 +749,7 @@
         heap: [...heap],
         title: 'Construcción Completada',
         tag: 'Finalizado',
-        desc: `¡Heap Binaria (${type === 'min' ? 'MinHeap' : 'MaxHeap'}) construida exitosamente insertando de a uno! Contiene ${heap.length - 1} elementos.`,
-        codeRoutine: routine,
-        codeLine: 7
+        desc: `¡Heap Binaria (${type === 'min' ? 'MinHeap' : 'MaxHeap'}) construida exitosamente insertando de a uno! Contiene ${heap.length - 1} elementos.`
       }));
 
       return { steps, finalHeap: heap };
@@ -854,15 +760,12 @@
       const steps = [];
       const heap = [null, ...elements]; // 1-indexed
       const n = elements.length;
-      const routine = type === 'min' ? 'percolate_down' : 'percolate_down_max';
 
       steps.push(createStepSnapshot({
         heap: [...heap],
         title: 'BuildHeap (Floyd) - Inicio',
         tag: 'Inicio O(N)',
-        desc: `Cargamos todos los ${n} elementos desordenados en el árbol binario completo. Las hojas (posiciones desde ⌊${n}/2⌋ + 1 = ${Math.floor(n/2) + 1} hasta ${n}) ya son heaps triviales. Comenzaremos a filtrar hacia abajo desde i = ⌊${n}/2⌋ = ${Math.floor(n/2)} hasta 1.`,
-        codeRoutine: 'build_heap',
-        codeLine: 3
+        desc: `Cargamos todos los ${n} elementos desordenados en el árbol binario completo. Las hojas (posiciones desde ⌊${n}/2⌋ + 1 = ${Math.floor(n/2) + 1} hasta ${n}) ya son heaps triviales. Comenzaremos a filtrar hacia abajo desde i = ⌊${n}/2⌋ = ${Math.floor(n/2)} hasta 1.`
       }));
 
       // Bucle desde floor(n/2) downto 1
@@ -872,9 +775,7 @@
           highlights: { [i]: 'candidate' },
           title: `BuildHeap: Filtrando nodo i = ${i} (Valor ${heap[i]})`,
           tag: `i = ${i}`,
-          desc: `Se invoca percolate_down sobre la posición i = ${i} (valor actual: ${heap[i]}). Sus subárboles izquierdo y derecho ya son heaps válidas.`,
-          codeRoutine: 'build_heap',
-          codeLine: 4
+          desc: `Se invoca percolate_down sobre la posición i = ${i} (valor actual: ${heap[i]}). Sus subárboles izquierdo y derecho ya son heaps válidas.`
         }));
 
         // Percolate Down en posición i
@@ -884,13 +785,11 @@
         while (2 * p <= n && !stop_perc) {
           let h_pri = 2 * p; // hijo izquierdo
           const leftChildVal = heap[h_pri];
-          let rightChildVal = null;
 
           let compareDesc = `Buscamos el hijo con clave prioritaria entre los hijos de ${p}. Hijo izquierdo en pos ${h_pri} es ${leftChildVal}.`;
 
           if (h_pri < n) {
-            // Existe hijo derecho
-            rightChildVal = heap[h_pri + 1];
+            const rightChildVal = heap[h_pri + 1];
             const rightBetter = hasHigherPriority(rightChildVal, leftChildVal, type);
             if (rightBetter) {
               h_pri = h_pri + 1;
@@ -907,12 +806,9 @@
             },
             title: `Evaluar hijos de nodo ${p}`,
             tag: 'Selección Hijo',
-            desc: compareDesc,
-            codeRoutine: routine,
-            codeLine: 4
+            desc: compareDesc
           }));
 
-          // Comparar candidato con hijo prioritario
           const candidato = heap[p];
           const priVal = heap[h_pri];
 
@@ -922,9 +818,7 @@
               highlights: { [p]: 'candidate', [h_pri]: 'compare' },
               title: `Comparación: Candidato ${candidato} vs Hijo ${priVal}`,
               tag: 'Viola Orden',
-              desc: `El candidato ${candidato} en pos ${p} viola el orden con su hijo ${priVal} en pos ${h_pri} (${type === 'min' ? `${candidato} > ${priVal}` : `${candidato} < ${priVal}`}). Se realiza el intercambio.`,
-              codeRoutine: routine,
-              codeLine: 5
+              desc: `El candidato ${candidato} en pos ${p} viola el orden con su hijo ${priVal} en pos ${h_pri} (${type === 'min' ? `${candidato} > ${priVal}` : `${candidato} < ${priVal}`}). Se realiza el intercambio.`
             }));
 
             // Swap
@@ -936,9 +830,7 @@
               highlights: { [h_pri]: 'candidate', [p]: 'swap' },
               title: `Intercambio realizado`,
               tag: 'Swap',
-              desc: `El valor ${priVal} asciende a la posición ${p} y el candidato ${candidato} baja a la posición ${h_pri}.`,
-              codeRoutine: routine,
-              codeLine: 6
+              desc: `El valor ${priVal} asciende a la posición ${p} y el candidato ${candidato} baja a la posición ${h_pri}.`
             }));
 
             p = h_pri;
@@ -949,9 +841,7 @@
               highlights: { [p]: 'candidate' },
               title: `Nodo en pos ${p} satisface el orden`,
               tag: 'Stop Perc',
-              desc: `El candidato ${candidato} es ${type === 'min' ? 'menor o igual' : 'mayor o igual'} que sus hijos. Se detiene el filtrado en pos ${p}.`,
-              codeRoutine: routine,
-              codeLine: 7
+              desc: `El candidato ${candidato} es ${type === 'min' ? 'menor o igual' : 'mayor o igual'} que sus hijos. Se detiene el filtrado en pos ${p}.`
             }));
           }
         }
@@ -961,9 +851,7 @@
         heap: [...heap],
         title: 'BuildHeap Completado',
         tag: 'Final O(N)',
-        desc: `¡Operación BuildHeap finalizada con éxito! Todos los nodos satisfacen la propiedad estructural y la propiedad de orden ${type === 'min' ? 'MinHeap' : 'MaxHeap'}. Tiempo lineal O(N).`,
-        codeRoutine: 'build_heap',
-        codeLine: 5
+        desc: `¡Operación BuildHeap finalizada con éxito! Todos los nodos satisfacen la propiedad estructural y la propiedad de orden ${type === 'min' ? 'MinHeap' : 'MaxHeap'}. Tiempo lineal O(N).`
       }));
 
       return { steps, finalHeap: heap };
@@ -973,7 +861,6 @@
     function generateInsertSingleSteps(baseHeap, val, type) {
       const steps = [];
       const heap = [...baseHeap];
-      const routine = type === 'min' ? 'percolate_up' : 'percolate_up_max';
 
       heap.push(val);
       let curr = heap.length - 1;
@@ -983,9 +870,7 @@
         highlights: { [curr]: 'candidate' },
         title: `Insert(${val}) - Posición inicial`,
         tag: 'Inserción',
-        desc: `Se inserta el nuevo dato ${val} al final de la heap en la posición ${curr}. Se inicia percolate_up(h, ${curr}).`,
-        codeRoutine: routine,
-        codeLine: 1
+        desc: `Se inserta el nuevo dato ${val} al final de la heap en la posición ${curr}. Se inicia percolate_up(h, ${curr}).`
       }));
 
       const temp = val;
@@ -998,9 +883,7 @@
           highlights: { [curr]: 'candidate', [parentIdx]: 'compare' },
           title: `Comparar pos ${curr} (${temp}) con padre pos ${parentIdx} (${parentVal})`,
           tag: 'Percolate Up',
-          desc: `El valor ${temp} viola la propiedad con su padre ${parentVal}. Se intercambian sus posiciones.`,
-          codeRoutine: routine,
-          codeLine: 2
+          desc: `El valor ${temp} viola la propiedad con su padre ${parentVal}. Se intercambian sus posiciones.`
         }));
 
         heap[curr] = parentVal;
@@ -1011,9 +894,7 @@
           highlights: { [parentIdx]: 'candidate', [curr]: 'swap' },
           title: `Intercambio: ${temp} sube a pos ${parentIdx}`,
           tag: 'Swap',
-          desc: `${temp} sube a la posición ${parentIdx}.`,
-          codeRoutine: routine,
-          codeLine: 3
+          desc: `${temp} sube a la posición ${parentIdx}.`
         }));
 
         curr = parentIdx;
@@ -1024,9 +905,7 @@
         highlights: { [curr]: 'candidate' },
         title: `Insert(${val}) finalizado`,
         tag: 'Listo',
-        desc: `El elemento ${val} quedó en su ubicación definitiva (posición ${curr}). Propiedades de heap preservadas.`,
-        codeRoutine: routine,
-        codeLine: 6
+        desc: `El elemento ${val} quedó en su ubicación definitiva (posición ${curr}). Propiedades de heap preservadas.`
       }));
 
       return { steps, finalHeap: heap };
@@ -1036,7 +915,6 @@
     function generateDeleteRootSteps(baseHeap, type) {
       const steps = [];
       const heap = [...baseHeap];
-      const routine = type === 'min' ? 'percolate_down' : 'percolate_down_max';
       const rootName = type === 'min' ? 'DeleteMin' : 'DeleteMax';
 
       if (heap.length <= 1) {
@@ -1044,9 +922,7 @@
           heap: [null],
           title: `${rootName}: Heap Vacía`,
           tag: 'Error',
-          desc: 'No se puede eliminar elementos porque la heap está vacía.',
-          codeRoutine: routine,
-          codeLine: 0
+          desc: 'No se puede eliminar elementos porque la heap está vacía.'
         }));
         return { steps, finalHeap: [null] };
       }
@@ -1058,9 +934,7 @@
           heap: [null],
           title: `${rootName}: Eliminado único elemento (${removed})`,
           tag: 'Eliminado',
-          desc: `Se eliminó el elemento ${removed}. La heap queda vacía.`,
-          codeRoutine: routine,
-          codeLine: 0
+          desc: `Se eliminó el elemento ${removed}. La heap queda vacía.`
         }));
         return { steps, finalHeap: [null] };
       }
@@ -1074,9 +948,7 @@
         highlights: { 1: 'compare', [lastIdx]: 'candidate' },
         title: `${rootName}: Guardar raíz e intercambiar con el último`,
         tag: 'Paso 1',
-        desc: `Se recupera y elimina la raíz (valor ${rootVal}). Se toma el último elemento (${lastVal} en pos ${lastIdx}) y se promueve transitoriamente a la raíz.`,
-        codeRoutine: routine,
-        codeLine: 1
+        desc: `Se recupera y elimina la raíz (valor ${rootVal}). Se toma el último elemento (${lastVal} en pos ${lastIdx}) y se promueve transitoriamente a la raíz.`
       }));
 
       heap[1] = lastVal;
@@ -1088,9 +960,7 @@
         highlights: { 1: 'candidate' },
         title: `Candidato ${lastVal} en la raíz`,
         tag: 'Paso 2',
-        desc: `Ahora el valor ${lastVal} está en la raíz (pos 1), pero probablemente viola la propiedad de orden. Iniciamos percolate_down(h, 1).`,
-        codeRoutine: routine,
-        codeLine: 2
+        desc: `Ahora el valor ${lastVal} está en la raíz (pos 1), pero probablemente viola la propiedad de orden. Iniciamos percolate_down(h, 1).`
       }));
 
       let p = 1;
@@ -1116,9 +986,7 @@
           },
           title: `Comparar hijos en nivel de pos ${p}`,
           tag: 'Hijo Prioritario',
-          desc: `Hijo prioritario seleccionado en pos ${h_pri} (valor ${heap[h_pri]}).`,
-          codeRoutine: routine,
-          codeLine: 4
+          desc: `Hijo prioritario seleccionado en pos ${h_pri} (valor ${heap[h_pri]}).`
         }));
 
         const candidato = heap[p];
@@ -1130,9 +998,7 @@
             highlights: { [p]: 'candidate', [h_pri]: 'compare' },
             title: `Filtrar hacia abajo: Intercambio con hijo ${priVal}`,
             tag: 'Percolate Down',
-            desc: `El candidato ${candidato} viola el orden con ${priVal}. Intercambiamos pos ${p} con pos ${h_pri}.`,
-            codeRoutine: routine,
-            codeLine: 5
+            desc: `El candidato ${candidato} viola el orden con ${priVal}. Intercambiamos pos ${p} con pos ${h_pri}.`
           }));
 
           heap[p] = priVal;
@@ -1143,9 +1009,7 @@
             highlights: { [h_pri]: 'candidate', [p]: 'swap' },
             title: `Intercambio realizado`,
             tag: 'Swap',
-            desc: `Candidato ${candidato} descendió a la pos ${h_pri}.`,
-            codeRoutine: routine,
-            codeLine: 6
+            desc: `Candidato ${candidato} descendió a la pos ${h_pri}.`
           }));
 
           p = h_pri;
@@ -1156,9 +1020,7 @@
             highlights: { [p]: 'candidate' },
             title: `Ubicación encontrada`,
             tag: 'Fin Filtrado',
-            desc: `El candidato ${candidato} satisface el orden en pos ${p}. Filtrado finalizado.`,
-            codeRoutine: routine,
-            codeLine: 7
+            desc: `El candidato ${candidato} satisface el orden en pos ${p}. Filtrado finalizado.`
           }));
         }
       }
@@ -1167,104 +1029,164 @@
         heap: [...heap],
         title: `${rootName} completado exitosamente`,
         tag: 'Final',
-        desc: `Elemento eliminado: ${rootVal}. La heap binaria mantiene todas sus propiedades intactas. Costo: O(log N).`,
-        codeRoutine: routine,
-        codeLine: 8
+        desc: `Elemento eliminado: ${rootVal}. La heap binaria mantiene todas sus propiedades intactas. Costo: O(log N).`
       }));
 
       return { steps, finalHeap: heap };
     }
 
-    // 5. ALGORITMO HEAPSORT (IN-PLACE DE CÁTEDRA - DIAPOS 22 A 34)
+    // 5. ALGORITMO HEAPSORT (CON CONSTRUCCIÓN PASO A PASO DE LA HEAP INICIAL)
     function generateHeapSortSteps(elements, order = 'asc') {
       const steps = [];
-      // Para orden creciente (asc), usamos MaxHeap (diapos 22-34)
-      // Para orden decreciente (desc), usamos MinHeap
       const heapType = order === 'asc' ? 'max' : 'min';
-      const routine = heapType === 'max' ? 'percolate_down_max' : 'percolate_down';
-      
       const heap = [null, ...elements];
       const n = elements.length;
 
+      // ==========================================
+      // FASE 1: CONSTRUCCIÓN PASO A PASO DE LA HEAP INICIAL (BUILDHEAP)
+      // ==========================================
       steps.push(createStepSnapshot({
         heap: [...heap],
         heapSize: n,
         partitionIndex: n + 1,
-        title: `HeapSort: Fase 1 - Construir ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'}`,
-        tag: 'Fase 1 O(N)',
-        desc: `Para ordenar el arreglo de forma ${order === 'asc' ? 'creciente' : 'decreciente'} in-place (diapos 22-34), construimos primero una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} con los ${n} elementos usando BuildHeap en O(N).`,
-        codeRoutine: 'heapsort',
-        codeLine: 1
+        title: `HeapSort: Fase 1 - Construcción paso a paso de la ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} inicial`,
+        tag: 'Fase 1: Inicio',
+        desc: `Para ordenar el arreglo de forma ${order === 'asc' ? 'creciente' : 'decreciente'} in-place, comenzamos construyendo una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} con los ${n} elementos. Observaremos uno a uno todos los pasos de filtrado hacia abajo desde la posición ⌊${n}/2⌋ = ${Math.floor(n/2)} hasta 1.`
       }));
 
-      // BuildHeap in-place
+      // Bucle BuildHeap paso a paso
       for (let i = Math.floor(n / 2); i >= 1; i--) {
+        steps.push(createStepSnapshot({
+          heap: [...heap],
+          heapSize: n,
+          partitionIndex: n + 1,
+          highlights: { [i]: 'candidate' },
+          title: `Fase 1 (BuildHeap): Filtrando nodo i = ${i} (Valor ${heap[i]})`,
+          tag: `BuildHeap: i = ${i}`,
+          desc: `Iniciamos el filtrado hacia abajo (Percolate Down) en el nodo interno i = ${i} (valor actual: ${heap[i]}). Sus subárboles izquierdo y derecho ya son heaps válidas.`
+        }));
+
         let p = i;
         let stop_perc = false;
+
         while (2 * p <= n && !stop_perc) {
-          let h_pri = 2 * p;
-          if (h_pri < n && hasHigherPriority(heap[h_pri + 1], heap[h_pri], heapType)) {
-            h_pri++;
+          let h_pri = 2 * p; // hijo izquierdo
+          const leftChildVal = heap[h_pri];
+
+          let compareDesc = `Buscamos el hijo con clave prioritaria entre los hijos de ${p}. Hijo izquierdo en pos ${h_pri} es ${leftChildVal}.`;
+
+          if (h_pri < n) {
+            const rightChildVal = heap[h_pri + 1];
+            const rightBetter = hasHigherPriority(rightChildVal, leftChildVal, heapType);
+            if (rightBetter) {
+              h_pri = h_pri + 1;
+            }
+            compareDesc += ` Existe hijo derecho en pos ${h_pri + (rightBetter ? 0 : 1)} (${rightChildVal}). En ${heapType === 'max' ? 'MaxHeap se elige el mayor' : 'MinHeap se elige el menor'}: seleccionado hijo en pos ${h_pri} con valor ${heap[h_pri]}.`;
           }
-          if (violatesOrder(heap[p], heap[h_pri], heapType)) {
-            const tmp = heap[p];
-            heap[p] = heap[h_pri];
-            heap[h_pri] = tmp;
+
+          steps.push(createStepSnapshot({
+            heap: [...heap],
+            heapSize: n,
+            partitionIndex: n + 1,
+            highlights: { 
+              [p]: 'candidate', 
+              [2 * p]: 'compare', 
+              ...(2 * p + 1 <= n ? { [2 * p + 1]: 'compare' } : {}) 
+            },
+            title: `Fase 1: Evaluar hijos de nodo ${p}`,
+            tag: 'Selección Hijo',
+            desc: compareDesc
+          }));
+
+          const cand = heap[p];
+          const pri = heap[h_pri];
+
+          if (violatesOrder(cand, pri, heapType)) {
+            steps.push(createStepSnapshot({
+              heap: [...heap],
+              heapSize: n,
+              partitionIndex: n + 1,
+              highlights: { [p]: 'candidate', [h_pri]: 'compare' },
+              title: `Fase 1: Candidato ${cand} vs Hijo ${pri}`,
+              tag: 'Viola Orden',
+              desc: `El valor ${cand} en pos ${p} viola el orden con su hijo ${pri} en pos ${h_pri} (${heapType === 'max' ? `${cand} < ${pri}` : `${cand} > ${pri}`}). Se realiza el intercambio.`
+            }));
+
+            // Swap
+            heap[p] = pri;
+            heap[h_pri] = cand;
+
+            steps.push(createStepSnapshot({
+              heap: [...heap],
+              heapSize: n,
+              partitionIndex: n + 1,
+              highlights: { [h_pri]: 'candidate', [p]: 'swap' },
+              title: `Fase 1: Intercambio realizado`,
+              tag: 'Swap',
+              desc: `El valor ${pri} asciende a la posición ${p} y el candidato ${cand} desciende a la posición ${h_pri}.`
+            }));
+
             p = h_pri;
           } else {
             stop_perc = true;
+            steps.push(createStepSnapshot({
+              heap: [...heap],
+              heapSize: n,
+              partitionIndex: n + 1,
+              highlights: { [p]: 'candidate' },
+              title: `Fase 1: Nodo en pos ${p} satisface el orden`,
+              tag: 'Stop Perc',
+              desc: `El candidato ${cand} es ${heapType === 'max' ? 'mayor o igual' : 'menor o igual'} que sus hijos. Se detiene el filtrado en pos ${p}.`
+            }));
           }
         }
       }
 
+      // Transición: Heap Inicial Lista
       steps.push(createStepSnapshot({
         heap: [...heap],
         heapSize: n,
         partitionIndex: n + 1,
-        title: `${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} Inicial Construida`,
-        tag: 'Heap Lista',
-        desc: `La heap inicial está lista. La raíz (posición 1) contiene el valor más ${heapType === 'max' ? 'grande (máximo)' : 'pequeño (mínimo)'} actual: ${heap[1]}. Ahora comienza la fase de extracción y particionado in-place.`,
-        codeRoutine: 'heapsort',
-        codeLine: 2
+        title: `¡Fase 1 Completada! ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} Inicial Lista`,
+        tag: 'Fase 1 Finalizada',
+        desc: `La heap inicial está totalmente construida. La raíz (posición 1) contiene el valor más ${heapType === 'max' ? 'grande (máximo)' : 'pequeño (mínimo)'} actual: ${heap[1]}. Ahora comienza la Fase 2: intercambiar la raíz con la última posición activa, reducir el tamaño y filtrar hacia abajo.`
       }));
 
-      // Fase 2: De i = n downto 2
+      // ==========================================
+      // FASE 2: ORDENACIÓN IN-PLACE (INTERCAMBIOS Y PARTICIONES)
+      // ==========================================
       for (let i = n; i >= 2; i--) {
         const rootVal = heap[1];
         const lastVal = heap[i];
 
-        // Paso A: Intercambiar el primero con el último (diapos 23, 27, 29)
+        // Paso A: Intercambiar la raíz con el último elemento de la heap actual
         steps.push(createStepSnapshot({
           heap: [...heap],
           heapSize: i,
           partitionIndex: i + 1,
           highlights: { 1: 'compare', [i]: 'swap' },
-          title: `Intercambiar raíz con el último elemento de la heap (pos 1 con pos ${i})`,
+          title: `Fase 2: Intercambiar raíz (pos 1) con último elemento activo (pos ${i})`,
           tag: 'Intercambio',
-          desc: `Intercambiamos el elemento en la raíz (${rootVal}) con el último elemento de la heap actual (${lastVal} en pos ${i}). El elemento ${rootVal} queda fijado en su posición definitiva ordenada.`,
-          codeRoutine: 'heapsort',
-          codeLine: 3
+          desc: `Intercambiamos la raíz (${rootVal}) con el último elemento activo de la heap (${lastVal} en pos ${i}). El elemento ${rootVal} queda fijado en su posición definitiva ordenada.`
         }));
 
         heap[1] = lastVal;
         heap[i] = rootVal;
 
-        // Paso B: Decrementar el tamaño de la heap (diapos 24, 27, 29)
+        // Paso B: Decrementar el tamaño de la heap (frontera roja divisoria)
         const newHeapSize = i - 1;
 
         steps.push(createStepSnapshot({
           heap: [...heap],
           heapSize: newHeapSize,
-          partitionIndex: i, // La línea roja divisoria se traza antes de pos i
+          partitionIndex: i, // Línea divisoria antes de pos i
           highlights: { 1: 'candidate', [i]: 'sorted' },
           title: `Decrementar tamaño de la heap a ${newHeapSize}`,
           tag: 'Frontera Roja',
-          desc: `Decrementamos el tamaño de la heap a ${newHeapSize}. El elemento ${rootVal} queda a la derecha de la frontera roja divisoria (zona ya ordenada). El valor ${lastVal} en la raíz debe ser filtrado hacia abajo.`,
-          codeRoutine: 'heapsort',
-          codeLine: 4
+          desc: `Decrementamos el tamaño activo de la heap a ${newHeapSize}. El elemento ${rootVal} queda a la derecha de la frontera roja (zona ordenada). El valor ${lastVal} en la raíz será filtrado hacia abajo.`
         }));
 
-        // Paso C: Filtrar hacia abajo la nueva raíz (diapos 25-26, 28, 30)
+        // Paso C: Filtrar hacia abajo la nueva raíz
         let p = 1;
         let stop_perc = false;
 
@@ -1286,9 +1208,7 @@
             },
             title: `Filtrar hacia abajo: Evaluar hijos en heap activa (hasta pos ${newHeapSize})`,
             tag: 'Percolate Down',
-            desc: `Evaluamos los hijos en la porción de heap activa. Hijo prioritario en pos ${h_pri} (valor ${heap[h_pri]}).`,
-            codeRoutine: routine,
-            codeLine: 4
+            desc: `Evaluamos los hijos en la porción de heap activa. Hijo prioritario en pos ${h_pri} (valor ${heap[h_pri]}).`
           }));
 
           const cand = heap[p];
@@ -1305,9 +1225,7 @@
               highlights: { [h_pri]: 'candidate', [p]: 'swap', [i]: 'sorted' },
               title: `Intercambiar ${cand} con hijo ${pri}`,
               tag: 'Swap',
-              desc: `El valor ${cand} desciende a la posición ${h_pri}.`,
-              codeRoutine: routine,
-              codeLine: 6
+              desc: `El valor ${cand} desciende a la posición ${h_pri}.`
             }));
 
             p = h_pri;
@@ -1323,9 +1241,7 @@
           highlights: { [p]: 'candidate', [i]: 'sorted' },
           title: `Raíz filtrada. Elementos ordenados fijados: ${n - newHeapSize}`,
           tag: 'Iteración Lista',
-          desc: `La porción activa de la heap (pos 1 a ${newHeapSize}) vuelve a ser una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} válida.`,
-          codeRoutine: 'heapsort',
-          codeLine: 5
+          desc: `La porción activa de la heap (pos 1 a ${newHeapSize}) vuelve a ser una ${heapType === 'max' ? 'MaxHeap' : 'MinHeap'} válida.`
         }));
       }
 
@@ -1338,8 +1254,6 @@
         title: 'HeapSort Completado exitosamente',
         tag: 'Vector Ordenado',
         desc: `¡El vector ha quedado completamente ordenado in-place sin utilizar memoria adicional! Vector final: [${heap.slice(1).join(', ')}]. Complejidad: O(N log N).`,
-        codeRoutine: 'heapsort',
-        codeLine: 6,
         sortedResult: heap.slice(1)
       }));
 
@@ -1366,12 +1280,9 @@
         highlights: { [pos]: 'candidate' },
         title: `${mode === 'decrease' ? 'DecreaseKey' : 'IncreaseKey'}(pos ${pos}, Δ=${delta})`,
         tag: 'Modificación',
-        desc: `Se modifica la clave en la posición ${pos} de ${oldVal} a ${newVal} (Δ = ${delta}).`,
-        codeRoutine: 'percolate_up',
-        codeLine: 1
+        desc: `Se modifica la clave en la posición ${pos} de ${oldVal} a ${newVal} (Δ = ${delta}).`
       }));
 
-      // Determinar si requiere percolate_up o percolate_down
       const needsUp = currentHeapType === 'min' ? mode === 'decrease' : mode === 'increase';
 
       if (needsUp) {
@@ -1386,9 +1297,7 @@
             highlights: { [curr]: 'candidate', [parentIdx]: 'compare' },
             title: `Filtrar hacia arriba: Comparar pos ${curr} con padre pos ${parentIdx}`,
             tag: 'Percolate Up',
-            desc: `El valor ${temp} viola la propiedad con su padre ${parentVal}. Se intercambian.`,
-            codeRoutine: currentHeapType === 'min' ? 'percolate_up' : 'percolate_up_max',
-            codeLine: 2
+            desc: `El valor ${temp} viola la propiedad con su padre ${parentVal}. Se intercambian.`
           }));
 
           heap[curr] = parentVal;
@@ -1413,9 +1322,7 @@
               highlights: { [h_pri]: 'candidate', [p]: 'swap' },
               title: `Filtrar hacia abajo: Intercambiar pos ${p} con pos ${h_pri}`,
               tag: 'Percolate Down',
-              desc: `El nodo desciende a pos ${h_pri}.`,
-              codeRoutine: currentHeapType === 'min' ? 'percolate_down' : 'percolate_down_max',
-              codeLine: 5
+              desc: `El nodo desciende a pos ${h_pri}.`
             }));
             p = h_pri;
           } else {
@@ -1428,9 +1335,7 @@
         heap: [...heap],
         title: 'Operación Finalizada',
         tag: 'Listo',
-        desc: 'Clave modificada y propiedad de orden reestablecida.',
-        codeRoutine: 'percolate_up',
-        codeLine: 6
+        desc: 'Clave modificada y propiedad de orden reestablecida.'
       }));
 
       return { steps, finalHeap: heap };
@@ -1637,7 +1542,7 @@
     }
 
     // ==========================================
-    // RENDERIZADOR: ÁRBOL SVG, VECTOR Y PSEUDOCÓDIGO
+    // RENDERIZADOR: ÁRBOL SVG, VECTOR Y PANEL DE ESTADO
     // ==========================================
 
     function renderStep(step) {
@@ -1648,11 +1553,20 @@
       document.getElementById('narrative-tag').innerText = step.tag;
       document.getElementById('narrative-desc').innerHTML = step.desc;
 
-      // 2. Pseudocódigo
-      renderCodePanel(step.codeRoutine, step.codeLine);
-
-      // 3. Arreglo lineal
+      // 2. Arreglo lineal
       renderArrayCells(step);
+
+      // 3. Métricas de la Heap
+      const activeN = step.heapSize !== undefined ? step.heapSize : (step.heap.length - 1);
+      const height = activeN > 0 ? Math.floor(Math.log2(activeN)) : 0;
+      const rootVal = activeN > 0 ? step.heap[1] : '-';
+      const lastVal = activeN > 0 ? step.heap[activeN] : '-';
+
+      document.getElementById('metric-heap-type').innerText = currentHeapType.toUpperCase();
+      document.getElementById('metric-n').innerText = activeN;
+      document.getElementById('metric-h').innerText = height;
+      document.getElementById('metric-root').innerText = rootVal;
+      document.getElementById('metric-last').innerText = lastVal;
 
       // 4. Árbol SVG
       renderSVGTree(step);
@@ -1691,31 +1605,9 @@
       lucide.createIcons();
     }
 
-    function renderCodePanel(routineKey, activeLine) {
-      const tagElem = document.getElementById('code-routine-name');
-      const container = document.getElementById('code-lines-container');
-
-      const lines = PSEUDOCODES[routineKey] || PSEUDOCODES.percolate_down;
-      tagElem.innerText = routineKey;
-
-      container.innerHTML = lines.map((line, idx) => {
-        const isActive = idx === activeLine;
-        return `
-          <div class="code-line px-2 py-0.5 rounded transition ${isActive ? 'active font-bold text-white shadow-sm' : ''}">
-            <span class="text-slate-600 select-none mr-2 inline-block w-4 text-right">${idx + 1}</span>${escapeHTML(line)}
-          </div>
-        `;
-      }).join('');
-    }
-
-    function escapeHTML(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
     function renderArrayCells(step) {
       const container = document.getElementById('array-cells-container');
       const heap = step.heap;
-      const heapSize = step.heapSize !== undefined ? step.heapSize : (heap.length - 1);
       const totalItems = heap.length - 1;
 
       if (totalItems <= 0) {
@@ -1729,7 +1621,6 @@
         const highlight = step.highlights[i];
         const isSortedZone = step.partitionIndex && i >= step.partitionIndex;
 
-        // Estilos según rol
         let cellBorder = 'border-slate-700 bg-slate-950 text-slate-100';
         let badgeBg = 'text-slate-400';
 
@@ -1753,16 +1644,16 @@
         if (isPartitionBorder) {
           html += `
             <div class="flex flex-col items-center justify-center px-1">
-              <div class="w-1.5 h-16 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.9)] animate-pulse" title="Frontera de HeapSort: Límite de la heap"></div>
+              <div class="w-1.5 h-16 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.9)]" title="Frontera de HeapSort: Límite de la heap"></div>
               <span class="text-[9px] font-mono-code text-red-400 font-bold mt-1">Límite</span>
             </div>
           `;
         }
 
         html += `
-          <div class="flex flex-col items-center gap-1 transition-all duration-300">
+          <div class="flex flex-col items-center gap-1">
             <span class="text-[10px] font-mono-code ${badgeBg}">[${i}]</span>
-            <div class="w-11 h-11 flex items-center justify-center rounded-xl border-2 font-mono-code font-bold text-sm shadow-md transition-all duration-300 ${cellBorder}">
+            <div class="w-11 h-11 flex items-center justify-center rounded-xl border-2 font-mono-code font-bold text-sm shadow-md ${cellBorder}">
               ${val}
             </div>
             ${i === 1 ? '<span class="text-[9px] font-bold text-blue-400 uppercase">Raíz</span>' : '<span class="text-[9px] opacity-0">-</span>'}
@@ -1774,7 +1665,7 @@
     }
 
     // ==========================================
-    // RENDERIZADO DEL ÁRBOL COMPLETO EN SVG
+    // RENDERIZADO DEL ÁRBOL COMPLETO EN SVG (SIN MOVIMIENTO DE CANDIDATO)
     // ==========================================
 
     function renderSVGTree(step) {
@@ -1832,7 +1723,7 @@
         }
       }
 
-      // 2. Dibujar nodos
+      // 2. Dibujar nodos (estáticos sin animación de escala o movimiento)
       for (let i = 1; i <= totalNodes; i++) {
         const val = heap[i];
         const pos = coords[i];
@@ -1851,7 +1742,6 @@
       line.setAttribute('y2', to.y);
       line.setAttribute('class', 'tree-edge');
 
-      // Resaltar arista si involucra nodos activos
       const hParent = step.highlights[parentIdx];
       const hChild = step.highlights[childIdx];
       if ((hParent === 'candidate' && hChild === 'compare') || (hParent === 'compare' && hChild === 'candidate')) {
@@ -1868,7 +1758,7 @@
 
     function createSVGNode(x, y, value, index, highlight) {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', `node-group ${highlight === 'candidate' ? 'node-highlight-pulse' : ''}`);
+      g.setAttribute('class', 'node-group'); // Sin animación de movimiento ni escala
 
       // Círculo
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1886,7 +1776,7 @@
         fillColor = '#78350f';
         strokeColor = '#fbbf24';
         strokeWidth = '3.5';
-        circle.setAttribute('filter', 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.8))');
+        circle.setAttribute('filter', 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.75))');
       } else if (highlight === 'compare') {
         fillColor = '#1e3a8a';
         strokeColor = '#60a5fa';
